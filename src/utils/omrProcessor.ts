@@ -14,7 +14,7 @@ export interface ProcessingOptions {
   threshold?: number
 }
 
-// Test uchun realistik javoblar yaratish - rasm sifatiga qarab
+// Test uchun realistik javoblar yaratish - TUZATILGAN VERSIYA
 export const generateRealisticAnswers = (
   totalQuestions: number,
   answerKey: string[],
@@ -27,57 +27,91 @@ export const generateRealisticAnswers = (
   let baseAccuracy = 0.7 // 70% base accuracy
   
   if (imageQuality > 0.8) {
-    baseAccuracy = 0.85 // Yaxshi sifat - 85% to'g'ri
+    baseAccuracy = 0.90 // Yaxshi sifat - 90% to'g'ri
   } else if (imageQuality > 0.6) {
-    baseAccuracy = 0.75 // O'rtacha sifat - 75% to'g'ri
+    baseAccuracy = 0.80 // O'rtacha sifat - 80% to'g'ri
   } else if (imageQuality > 0.4) {
-    baseAccuracy = 0.65 // Past sifat - 65% to'g'ri
+    baseAccuracy = 0.70 // Past sifat - 70% to'g'ri
   } else {
-    baseAccuracy = 0.55 // Juda past sifat - 55% to'g'ri
+    baseAccuracy = 0.60 // Juda past sifat - 60% to'g'ri
   }
   
   // Xira yoki bukilgan rasmlar uchun qo'shimcha xatoliklar
-  const blankRate = imageQuality < 0.5 ? 0.08 : 0.03 // Past sifatda ko'proq bo'sh javob
-  const multipleMarkRate = imageQuality < 0.6 ? 0.05 : 0.02 // Past sifatda ko'proq bir nechta belgi
+  const blankRate = imageQuality < 0.5 ? 0.05 : 0.02 // Past sifatda ko'proq bo'sh javob
+  const multipleMarkRate = imageQuality < 0.6 ? 0.03 : 0.01 // Past sifatda ko'proq bir nechta belgi
+  
+  console.log('=== REALISTIK JAVOBLAR YARATISH ===')
+  console.log('Base accuracy:', baseAccuracy)
+  console.log('Image quality:', imageQuality)
+  console.log('Answer key:', answerKey)
   
   for (let i = 1; i <= totalQuestions; i++) {
-    const correctAnswer = answerKey[i - 1]
+    const correctAnswerString = answerKey[i - 1] || ''
     const randomValue = Math.random()
     
+    console.log(`Savol ${i}: correctAnswer="${correctAnswerString}", random=${randomValue.toFixed(3)}`)
+    
     if (randomValue < blankRate) {
-      // Bo'sh javob (xira rasmda ko'proq)
+      // Bo'sh javob
       answers[i] = []
+      console.log(`  -> Bo'sh javob`)
     } else if (randomValue < blankRate + multipleMarkRate) {
-      // Bir nechta javob (bukilgan rasmda ko'proq)
+      // Bir nechta javob (xato)
       const answer1 = availableOptions[Math.floor(Math.random() * availableOptions.length)]
       let answer2 = availableOptions[Math.floor(Math.random() * availableOptions.length)]
       while (answer2 === answer1) {
         answer2 = availableOptions[Math.floor(Math.random() * availableOptions.length)]
       }
       answers[i] = [answer1, answer2].sort()
+      console.log(`  -> Bir nechta javob (xato): ${answers[i].join(', ')}`)
     } else if (randomValue < baseAccuracy) {
       // To'g'ri javob berish
-      if (correctAnswer && correctAnswer.trim()) {
-        const correctAnswers = correctAnswer.split(',').map(a => a.trim())
+      if (correctAnswerString && correctAnswerString.trim()) {
+        const correctAnswers = correctAnswerString
+          .split(',')
+          .map(a => a.trim().toUpperCase())
+          .filter(a => a.length > 0)
         answers[i] = correctAnswers
+        console.log(`  -> To'g'ri javob: ${answers[i].join(', ')}`)
       } else {
         // Agar kalit javob bo'lmasa, tasodifiy javob
-        answers[i] = [availableOptions[Math.floor(Math.random() * availableOptions.length)]]
+        const randomAnswer = availableOptions[Math.floor(Math.random() * availableOptions.length)]
+        answers[i] = [randomAnswer]
+        console.log(`  -> Kalit yo'q, tasodifiy: ${answers[i].join(', ')}`)
       }
     } else {
       // Noto'g'ri javob berish
-      const wrongOptions = availableOptions.filter(opt => {
-        if (!correctAnswer) return true
-        return !correctAnswer.split(',').map(a => a.trim().toUpperCase()).includes(opt)
-      })
-      
-      if (wrongOptions.length > 0) {
-        answers[i] = [wrongOptions[Math.floor(Math.random() * wrongOptions.length)]]
+      if (correctAnswerString && correctAnswerString.trim()) {
+        const correctAnswers = correctAnswerString
+          .split(',')
+          .map(a => a.trim().toUpperCase())
+          .filter(a => a.length > 0)
+        
+        const wrongOptions = availableOptions.filter(opt => 
+          !correctAnswers.includes(opt)
+        )
+        
+        if (wrongOptions.length > 0) {
+          const wrongAnswer = wrongOptions[Math.floor(Math.random() * wrongOptions.length)]
+          answers[i] = [wrongAnswer]
+          console.log(`  -> Noto'g'ri javob: ${answers[i].join(', ')} (to'g'ri: ${correctAnswers.join(', ')})`)
+        } else {
+          // Agar barcha variantlar to'g'ri bo'lsa, tasodifiy tanlash
+          const randomAnswer = availableOptions[Math.floor(Math.random() * availableOptions.length)]
+          answers[i] = [randomAnswer]
+          console.log(`  -> Tasodifiy javob: ${answers[i].join(', ')}`)
+        }
       } else {
-        answers[i] = [availableOptions[Math.floor(Math.random() * availableOptions.length)]]
+        // Agar kalit javob bo'lmasa, tasodifiy javob
+        const randomAnswer = availableOptions[Math.floor(Math.random() * availableOptions.length)]
+        answers[i] = [randomAnswer]
+        console.log(`  -> Kalit yo'q, tasodifiy: ${answers[i].join(', ')}`)
       }
     }
   }
+  
+  console.log('=== YARATILGAN JAVOBLAR ===')
+  console.log('Final answers:', answers)
   
   return answers
 }
@@ -457,7 +491,7 @@ const analyzeImageQuality = (imageData: ImageData): {
   }
 }
 
-// Calculate score based on answer key
+// Calculate score based on answer key - TUZATILGAN VERSIYA
 export const calculateScore = (
   studentAnswers: { [questionNumber: number]: string[] },
   answerKey: string[],
@@ -509,23 +543,25 @@ export const calculateScore = (
       continue
     }
     
-    // To'g'ri javoblarni parse qilish
+    // To'g'ri javoblarni parse qilish va normalize qilish
     const correctAnswers = correctAnswerString
       .split(',')
       .map(a => a.trim().toUpperCase())
       .filter(a => a.length > 0)
+      .sort() // MUHIM: Tartibni bir xil qilish
     
-    const studentAnswersUpper = studentAnswer.map(a => a.toUpperCase())
+    const studentAnswersUpper = studentAnswer
+      .map(a => a.toUpperCase())
+      .sort() // MUHIM: Tartibni bir xil qilish
     
-    console.log(`  -> Taqqoslash:`, {
+    console.log(`  -> Taqqoslash (normalized):`, {
       correctAnswers,
       studentAnswersUpper
     })
     
-    // Javoblarni solishtirish
+    // Javoblarni solishtirish - SORTED COMPARISON
     const isCorrect = correctAnswers.length === studentAnswersUpper.length &&
-      correctAnswers.every(answer => studentAnswersUpper.includes(answer)) &&
-      studentAnswersUpper.every(answer => correctAnswers.includes(answer))
+      correctAnswers.join(',') === studentAnswersUpper.join(',')
     
     if (isCorrect) {
       correctCount++

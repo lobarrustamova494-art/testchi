@@ -302,10 +302,21 @@ const ExamScanner: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
               {Object.entries(scanResult.answers).map(([questionNumber, studentAnswers]) => {
                 const qNum = parseInt(questionNumber)
-                const correctAnswer = exam?.answerKey?.[qNum - 1] || ''
-                const isCorrect = correctAnswer && studentAnswers.length > 0 && 
-                  correctAnswer.split(',').map(a => a.trim().toUpperCase()).sort().join(',') === 
-                  studentAnswers.map(a => a.toUpperCase()).sort().join(',')
+                const correctAnswerString = exam?.answerKey?.[qNum - 1] || ''
+                
+                // TUZATILGAN: Bir xil mantiq ishlatish
+                const correctAnswers = correctAnswerString
+                  .split(',')
+                  .map(a => a.trim().toUpperCase())
+                  .filter(a => a.length > 0)
+                  .sort()
+                
+                const studentAnswersUpper = studentAnswers
+                  .map(a => a.toUpperCase())
+                  .sort()
+                
+                const isCorrect = correctAnswerString && studentAnswers.length > 0 && 
+                  correctAnswers.join(',') === studentAnswersUpper.join(',')
                 const isBlank = studentAnswers.length === 0
                 
                 return (
@@ -339,7 +350,7 @@ const ExamScanner: React.FC = () => {
                       <div>
                         <span className="text-slate-600 dark:text-slate-400">To'g'ri: </span>
                         <span className="font-medium text-green-600 dark:text-green-400">
-                          {correctAnswer || 'Belgilanmagan'}
+                          {correctAnswerString || 'Belgilanmagan'}
                         </span>
                       </div>
                     </div>
