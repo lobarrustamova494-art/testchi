@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Response } from 'express'
 import Subject from '../models/Subject.js'
 import { validate, schemas } from '../middleware/validation.js'
 import { authenticate } from '../middleware/auth.js'

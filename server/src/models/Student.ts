@@ -41,7 +41,7 @@ const studentSchema = new Schema<IStudent>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  } as any
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

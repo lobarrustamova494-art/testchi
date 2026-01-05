@@ -6,12 +6,12 @@ const examResultSchema = new Schema<IExamResult>({
     type: Schema.Types.ObjectId,
     ref: 'Exam',
     required: [true, 'Imtihon ID si kiritish majburiy']
-  },
+  } as any,
   studentId: {
     type: Schema.Types.ObjectId,
     ref: 'Student',
     required: [true, 'O\'quvchi ID si kiritish majburiy']
-  },
+  } as any,
   answers: {
     type: Map,
     of: String,
@@ -78,7 +78,7 @@ examResultSchema.virtual('studentDetails', {
 })
 
 // Virtual for percentage
-examResultSchema.virtual('percentage').get(function() {
+examResultSchema.virtual('percentage').get(function(this: any) {
   if (this.totalQuestions > 0) {
     return Math.round((this.correctAnswers / this.totalQuestions) * 100)
   }

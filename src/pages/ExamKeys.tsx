@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Key, Save, Check, X } from 'lucide-react'
+import { Key, Save, Check } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -133,7 +133,7 @@ const ExamKeys: React.FC = () => {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner size="lg" />
+          <LoadingSpinner size="lg" centered />
           <p className="mt-4 text-slate-600 dark:text-slate-400">Imtihon ma'lumotlari yuklanmoqda...</p>
         </div>
       </div>

@@ -156,6 +156,7 @@ const ExamDetail: React.FC = () => {
 
   if (loading) {
     return (
+<<<<<<< HEAD
       <div className="min-h-screen bg-background-light dark:bg-background-dark">
         <Header user={{
           id: user?.id || '1',
@@ -170,6 +171,12 @@ const ExamDetail: React.FC = () => {
             <SkeletonLoader variant="card" />
             <SkeletonLoader variant="text" lines={4} />
           </div>
+=======
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" centered />
+          <p className="mt-4 text-slate-600 dark:text-slate-400">Imtihon ma'lumotlari yuklanmoqda...</p>
+>>>>>>> 0984318e3c45453ab06ad6ea66f6916156d3d6f7
         </div>
       </div>
     )

@@ -10,10 +10,8 @@ export const generateToken = (userId: string): string => {
     { userId },
     secret,
     { 
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-      issuer: 'omr-admin',
-      audience: 'omr-users'
-    }
+      expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+    } as jwt.SignOptions
   )
 }
 
@@ -24,10 +22,7 @@ export const verifyToken = (token: string): { userId: string } => {
   }
 
   try {
-    const decoded = jwt.verify(token, secret, {
-      issuer: 'omr-admin',
-      audience: 'omr-users'
-    }) as { userId: string }
+    const decoded = jwt.verify(token, secret) as { userId: string }
     
     return decoded
   } catch (error) {

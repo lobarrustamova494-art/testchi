@@ -6,7 +6,7 @@ const omrSheetSchema = new Schema<IOMRSheet>({
     type: Schema.Types.ObjectId,
     ref: 'Exam',
     required: [true, 'Imtihon ID si kiritish majburiy']
-  },
+  } as any,
   setLetter: {
     type: String,
     required: [true, 'To\'plam harfi kiritish majburiy'],
@@ -27,7 +27,7 @@ const omrSheetSchema = new Schema<IOMRSheet>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  } as any
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

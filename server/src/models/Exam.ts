@@ -75,7 +75,7 @@ const examSchema = new Schema<IExam>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  },
+  } as any,
   isActive: {
     type: Boolean,
     default: true
