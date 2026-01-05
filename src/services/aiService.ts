@@ -24,6 +24,7 @@ export interface OMRAnalysisResult {
   confidence: number
   suspiciousAnswers?: number
   matchesExpectedPattern?: boolean
+  humanAnalysisScore?: number
   detailedResults: Array<{
     questionNumber: number
     studentAnswer: string

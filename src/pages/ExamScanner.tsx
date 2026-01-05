@@ -181,6 +181,15 @@ const ExamScanner: React.FC = () => {
       } else {
         console.warn('⚠️ AI tahlil kutilgan pattern dan farq qildi')
       }
+
+      // Human analysis comparison
+      if (aiResult.humanAnalysisScore !== undefined) {
+        console.log(`Human analysis score: ${aiResult.humanAnalysisScore}`)
+        console.log(`AI calculated score: ${aiResult.totalScore}`)
+        if (aiResult.totalScore === aiResult.humanAnalysisScore) {
+          console.log('🎯 AI score matches human analysis exactly!')
+        }
+      }
       
       // Natijani formatlash
       const result: ScanResult = {
