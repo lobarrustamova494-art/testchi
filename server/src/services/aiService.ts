@@ -208,73 +208,88 @@ export class AIService {
     try {
       const prompt = `You are a computer vision AI specialized in OMR (Optical Mark Recognition) analysis.
 
-CRITICAL: BE CONSISTENT AND ACCURATE IN EVERY ANALYSIS
+CRITICAL: MAXIMUM ACCURACY REQUIRED - ANALYZE MULTIPLE TIMES IF NEEDED
 
-Task: Analyze this OMR answer sheet image and detect filled circles for each question with EXACT PRECISION.
+Task: Analyze this OMR answer sheet image and detect filled circles with PERFECT ACCURACY.
 
-MANDATORY ANALYSIS STEPS:
-1. Identify the OMR grid structure
-2. Count total questions (rows)
-3. For each question row, identify 5 circles from LEFT to RIGHT
-4. Determine which circle is FILLED (dark/black) vs EMPTY (white)
-5. Map the filled position to corresponding letter
+IMAGE PREPROCESSING INSTRUCTIONS:
+1. Examine the image quality and orientation
+2. Identify any rotation, skew, or distortion
+3. Mentally adjust for lighting variations
+4. Focus on high-contrast areas for better detection
 
-VISUAL DETECTION RULES (STRICT):
-- FILLED CIRCLE = Completely dark/black circle (●)
-- EMPTY CIRCLE = White/light circle with visible letter (○)
-- IGNORE partial marks, light shading, or unclear marks
-- ONLY count circles that are COMPLETELY FILLED/DARK
+ROBUST ANALYSIS METHOD:
+1. First pass: Quick scan to identify overall structure
+2. Second pass: Detailed analysis of each question row
+3. Third pass: Verification of detected answers
+4. Final validation: Cross-check position mapping
 
-POSITION MAPPING (ABSOLUTE):
+ENHANCED VISUAL DETECTION:
+- FILLED CIRCLE = Dark/black circle, significantly darker than background
+- EMPTY CIRCLE = Light/white circle, similar to background brightness
+- THRESHOLD: If circle is 70%+ darker than background → FILLED
+- IGNORE: Shadows, reflections, or image artifacts
+
+POSITION MAPPING (ABSOLUTE - NEVER CHANGE):
 Position 1 (LEFTMOST) = A
-Position 2 = B
+Position 2 = B  
 Position 3 (MIDDLE) = C
 Position 4 = D
 Position 5 (RIGHTMOST) = E
 
-CONSISTENCY REQUIREMENTS:
-- Use the SAME analysis method for every question
-- Apply the SAME visual criteria for filled vs empty
-- Count positions in the SAME order (LEFT to RIGHT)
-- Map positions to letters using the SAME mapping
+MULTI-STEP VERIFICATION FOR EACH QUESTION:
+Step 1: Locate the 5 circles in the row
+Step 2: Compare brightness/darkness of each circle
+Step 3: Identify the darkest circle (if any)
+Step 4: Verify it's significantly darker than others
+Step 5: Determine its exact position (1-5)
+Step 6: Map position to letter (1=A, 2=B, 3=C, 4=D, 5=E)
+Step 7: Double-check the mapping
 
-STEP-BY-STEP ANALYSIS (MANDATORY):
-For each question row:
-1. Locate exactly 5 circles in the row
-2. Examine each circle from LEFT to RIGHT
-3. Identify which ONE circle is completely filled/dark
-4. Determine its position (1st, 2nd, 3rd, 4th, or 5th)
-5. Map position to letter: 1=A, 2=B, 3=C, 4=D, 5=E
-6. If NO circles are filled, answer is "BLANK"
+QUALITY ASSURANCE CHECKS:
+- Are all 5 circles clearly visible in each row?
+- Is the filled circle significantly darker than empty ones?
+- Is the position counting correct (LEFT to RIGHT)?
+- Is the position-to-letter mapping accurate?
+- Does the answer make logical sense?
 
-QUALITY CONTROL:
-- Double-check each position mapping
-- Verify LEFT to RIGHT counting
-- Ensure consistent visual criteria
-- Validate final answer mapping
+ERROR CORRECTION PROTOCOL:
+- If uncertain about a circle, examine surrounding context
+- If image quality is poor, focus on highest contrast areas
+- If multiple circles seem filled, choose the darkest one
+- If no clear filled circle, answer is "BLANK"
 
-EXAMPLE ANALYSIS:
-Row 1: [●] [○] [○] [○] [○] → Position 1 filled → Answer: "A"
-Row 2: [○] [●] [○] [○] [○] → Position 2 filled → Answer: "B"
-Row 3: [○] [○] [○] [○] [○] → No position filled → Answer: "BLANK"
+CONSISTENCY ENFORCEMENT:
+- Use IDENTICAL analysis method for every single question
+- Apply SAME brightness threshold for all circles
+- Count positions in SAME order (LEFT to RIGHT) always
+- Use SAME mapping (1=A, 2=B, 3=C, 4=D, 5=E) consistently
 
-ERROR PREVENTION:
-- Do NOT change analysis method between questions
-- Do NOT interpret partial marks as filled
-- Do NOT confuse position order
-- Do NOT vary visual criteria
+EXAMPLE WITH VERIFICATION:
+Row 1: [●] [○] [○] [○] [○]
+- Circle 1: Very dark (filled) ✓
+- Circle 2-5: Light (empty) ✓
+- Position 1 = A ✓
+- Answer: "A" ✓
+
+FINAL VALIDATION:
+Before outputting results:
+1. Review each answer for logical consistency
+2. Verify position mapping is correct
+3. Check for any obvious errors
+4. Ensure all questions are analyzed
 
 OUTPUT FORMAT (JSON only):
 {
   "answers": ["A", "B", "C", "BLANK", "D", ...],
-  "confidence": 0.95,
+  "confidence": 0.98,
   "imageQuality": 0.9,
   "totalQuestions": 10,
-  "notes": "Detected X marked answers out of Y questions",
-  "analysisMethod": "Consistent visual detection with fixed position mapping"
+  "notes": "Multi-pass analysis with verification",
+  "analysisMethod": "Enhanced robust detection with quality assurance"
 }
 
-CRITICAL: Apply the EXACT SAME analysis method to every single question. Be completely consistent in your visual detection and position mapping.`
+CRITICAL SUCCESS REQUIREMENT: Achieve 100% accuracy by using multiple verification passes and robust detection methods.`
 
       const completion = await groq.chat.completions.create({
         messages: [
