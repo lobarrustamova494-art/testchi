@@ -52,7 +52,6 @@ const ExamScanner: React.FC = () => {
     isValid: boolean
     issues: string[]
     suggestions: string[]
-    confidence?: number
   } | null>(null)
 
   useEffect(() => {
@@ -108,9 +107,7 @@ const ExamScanner: React.FC = () => {
       const validation = await validateOMRSheet(imageData)
       setValidationResult(validation)
       
-      // Xira yoki bukilgan rasmlarni ham qabul qilish (confidence > 0.3)
-      if (validation.confidence && validation.confidence < 0.3) {
-        setError('Rasm sifati juda past. Iltimos, yaxshiroq rasm oling.')
+      if (!validation.isValid) {
         return
       }
     
@@ -138,7 +135,6 @@ const ExamScanner: React.FC = () => {
     setError('')
     
     try {
-<<<<<<< HEAD
       // Progress simulation
       const progressInterval = setInterval(() => {
         setAnalysisProgress(prev => {
@@ -157,19 +153,6 @@ const ExamScanner: React.FC = () => {
         imageData,
         exam.answerKey,
         exam.scoring || { correct: 1, wrong: 0, blank: 0 }
-=======
-      const omrResult = await processOMRImageLegacy(imageData, {
-        totalQuestions: getTotalQuestions(exam),
-        answerOptions: ['A', 'B', 'C', 'D', 'E']
-      }, exam.answerKey)
-      
-      console.log('OMR Result:', omrResult)
-      
-      const scoreResult = calculateScore(
-        omrResult.answers,
-        exam.answerKey || [],
-        exam.scoring || { correct: 4, wrong: -1, blank: 0 }
->>>>>>> 0984318e3c45453ab06ad6ea66f6916156d3d6f7
       )
       
       clearInterval(progressInterval)
@@ -231,7 +214,7 @@ const ExamScanner: React.FC = () => {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner size="lg" centered />
+          <LoadingSpinner size="lg" />
           <p className="mt-4 text-slate-600 dark:text-slate-400">Imtihon yuklanmoqda...</p>
         </div>
       </div>
@@ -404,71 +387,6 @@ const ExamScanner: React.FC = () => {
             </div>
           </Card>
 
-          <Card className="mb-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-              Javoblar tafsiloti
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-              {Object.entries(scanResult.answers).map(([questionNumber, studentAnswers]) => {
-                const qNum = parseInt(questionNumber)
-                const correctAnswerString = exam?.answerKey?.[qNum - 1] || ''
-                
-                // TUZATILGAN: Bir xil mantiq ishlatish
-                const correctAnswers = correctAnswerString
-                  .split(',')
-                  .map(a => a.trim().toUpperCase())
-                  .filter(a => a.length > 0)
-                  .sort()
-                
-                const studentAnswersUpper = studentAnswers
-                  .map(a => a.toUpperCase())
-                  .sort()
-                
-                const isCorrect = correctAnswerString && studentAnswers.length > 0 && 
-                  correctAnswers.join(',') === studentAnswersUpper.join(',')
-                const isBlank = studentAnswers.length === 0
-                
-                return (
-                  <div 
-                    key={questionNumber}
-                    className={`p-3 rounded-lg border-2 ${
-                      isBlank 
-                        ? 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800'
-                        : isCorrect 
-                          ? 'border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-900/20'
-                          : 'border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-900/20'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm">Savol {questionNumber}</span>
-                      {isBlank ? (
-                        <span className="text-xs text-slate-500">Bo'sh</span>
-                      ) : isCorrect ? (
-                        <Check size={16} className="text-green-600" />
-                      ) : (
-                        <X size={16} className="text-red-600" />
-                      )}
-                    </div>
-                    <div className="text-xs space-y-1">
-                      <div>
-                        <span className="text-slate-600 dark:text-slate-400">Javob: </span>
-                        <span className="font-medium">
-                          {studentAnswers.length > 0 ? studentAnswers.join(', ') : 'Bo\'sh'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-600 dark:text-slate-400">To'g'ri: </span>
-                        <span className="font-medium text-green-600 dark:text-green-400">
-                          {correctAnswerString || 'Belgilanmagan'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </Card>
-
           {scanResult.scannedImage && (
             <Card className="mb-6">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
@@ -577,90 +495,26 @@ const ExamScanner: React.FC = () => {
           </Card>
         )}
 
-        {validationResult && (
+        {validationResult && !validationResult.isValid && (
           <Card className="mb-6">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-              Rasm sifati tahlili
+              Rasm sifati tekshiruvi
             </h2>
-            
-            {/* Confidence indicator */}
-            {validationResult.confidence !== undefined && (
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Sifat darajasi:</span>
-                  <span className={`text-sm font-semibold ${
-                    validationResult.confidence > 0.7 ? 'text-green-600' :
-                    validationResult.confidence > 0.5 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {Math.round(validationResult.confidence * 100)}%
-                  </span>
-                </div>
-                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      validationResult.confidence > 0.7 ? 'bg-green-500' :
-                      validationResult.confidence > 0.5 ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
-                    style={{ width: `${validationResult.confidence * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
-            
-            {/* Issues and suggestions */}
-            {validationResult.issues.length > 0 && (
-              <div className="space-y-3">
-                {validationResult.issues.map((issue, index) => (
-                  <div key={index} className={`flex items-start gap-3 p-3 rounded-lg ${
-                    validationResult.confidence && validationResult.confidence > 0.5 
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20' 
-                      : 'bg-red-50 dark:bg-red-900/20'
-                  }`}>
-                    <AlertCircle size={16} className={`mt-0.5 ${
-                      validationResult.confidence && validationResult.confidence > 0.5 
-                        ? 'text-yellow-600 dark:text-yellow-400' 
-                        : 'text-red-600 dark:text-red-400'
-                    }`} />
-                    <div>
-                      <p className={`text-sm ${
-                        validationResult.confidence && validationResult.confidence > 0.5 
-                          ? 'text-yellow-700 dark:text-yellow-300' 
-                          : 'text-red-700 dark:text-red-300'
-                      }`}>{issue}</p>
-                      {validationResult.suggestions[index] && (
-                        <p className={`text-xs mt-1 ${
-                          validationResult.confidence && validationResult.confidence > 0.5 
-                            ? 'text-yellow-600 dark:text-yellow-400' 
-                            : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          Tavsiya: {validationResult.suggestions[index]}
-                        </p>
-                      )}
-                    </div>
+            <div className="space-y-3">
+              {validationResult.issues.map((issue, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <AlertCircle size={16} className="text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">{issue}</p>
+                    {validationResult.suggestions[index] && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                        Tavsiya: {validationResult.suggestions[index]}
+                      </p>
+                    )}
                   </div>
-                ))}
-                
-                {validationResult.confidence && validationResult.confidence > 0.3 && (
-                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Check size={16} className="text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Rasm qayta ishlanishi mumkin. Natija aniqlik darajasi: {Math.round(validationResult.confidence * 100)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {validationResult.issues.length === 0 && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <Check size={20} className="text-green-600 dark:text-green-400" />
-                <span className="text-green-700 dark:text-green-300 text-sm">
-                  Rasm sifati yaxshi. Skanerlash uchun tayyor.
-                </span>
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </Card>
         )}
 
@@ -689,7 +543,6 @@ const ExamScanner: React.FC = () => {
                 <h3 className="font-semibold text-slate-900 dark:text-white">
                   AI tomonidan tahlil qilinmoqda...
                 </h3>
-<<<<<<< HEAD
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
                   Sun'iy intellekt OMR varaqni tahlil qilmoqda va javoblarni aniqlayapti
                 </p>
@@ -701,16 +554,6 @@ const ExamScanner: React.FC = () => {
                   label="AI Tahlil"
                   animated={true}
                 />
-=======
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Bubble detection algoritmi ishlamoqda. Bu bir necha daqiqa davom etishi mumkin.
-                </p>
-                <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  • Rasm sifatini tahlil qilish<br/>
-                  • Bo'yalgan aylanalarni aniqlash<br/>
-                  • Javoblarni taqqoslash
-                </div>
->>>>>>> 0984318e3c45453ab06ad6ea66f6916156d3d6f7
               </div>
             </div>
           </Card>
