@@ -125,14 +125,14 @@ const ExamScanner: React.FC = () => {
       const omrResult: OMRResult = await processOMRImage(imageData, {
         totalQuestions: getTotalQuestions(exam),
         answerOptions: ['A', 'B', 'C', 'D', 'E']
-      })
+      }, exam.answerKey)
       
       console.log('OMR Result:', omrResult)
       
       const scoreResult = calculateScore(
         omrResult.answers,
         exam.answerKey || [],
-        exam.scoring || { correct: 1, wrong: 0, blank: 0 }
+        exam.scoring || { correct: 4, wrong: -1, blank: 0 }
       )
       
       console.log('Score Result:', scoreResult)
@@ -289,6 +289,60 @@ const ExamScanner: React.FC = () => {
                   ID: {scanResult.studentId}
                 </p>
               </div>
+            </div>
+          </Card>
+
+          <Card className="mb-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+              Javoblar tafsiloti
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+              {Object.entries(scanResult.answers).map(([questionNumber, studentAnswers]) => {
+                const qNum = parseInt(questionNumber)
+                const correctAnswer = exam?.answerKey?.[qNum - 1] || ''
+                const isCorrect = correctAnswer && studentAnswers.length > 0 && 
+                  correctAnswer.split(',').map(a => a.trim().toUpperCase()).sort().join(',') === 
+                  studentAnswers.map(a => a.toUpperCase()).sort().join(',')
+                const isBlank = studentAnswers.length === 0
+                
+                return (
+                  <div 
+                    key={questionNumber}
+                    className={`p-3 rounded-lg border-2 ${
+                      isBlank 
+                        ? 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800'
+                        : isCorrect 
+                          ? 'border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-900/20'
+                          : 'border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-900/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-sm">Savol {questionNumber}</span>
+                      {isBlank ? (
+                        <span className="text-xs text-slate-500">Bo'sh</span>
+                      ) : isCorrect ? (
+                        <Check size={16} className="text-green-600" />
+                      ) : (
+                        <X size={16} className="text-red-600" />
+                      )}
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <div>
+                        <span className="text-slate-600 dark:text-slate-400">Javob: </span>
+                        <span className="font-medium">
+                          {studentAnswers.length > 0 ? studentAnswers.join(', ') : 'Bo\'sh'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-600 dark:text-slate-400">To'g'ri: </span>
+                        <span className="font-medium text-green-600 dark:text-green-400">
+                          {correctAnswer || 'Belgilanmagan'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </Card>
 

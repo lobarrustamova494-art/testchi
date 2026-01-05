@@ -14,44 +14,95 @@ export interface ProcessingOptions {
   threshold?: number
 }
 
-// Mock OMR processing function
+// Test uchun realistik javoblar yaratish
+export const generateRealisticAnswers = (
+  totalQuestions: number,
+  answerKey: string[],
+  correctnessRate: number = 0.7 // 70% to'g'ri javob
+): { [questionNumber: number]: string[] } => {
+  const answers: { [questionNumber: number]: string[] } = {}
+  const availableOptions = ['A', 'B', 'C', 'D']
+  
+  for (let i = 1; i <= totalQuestions; i++) {
+    const correctAnswer = answerKey[i - 1]
+    const randomValue = Math.random()
+    
+    if (randomValue < 0.05) {
+      // 5% bo'sh javob
+      answers[i] = []
+    } else if (randomValue < correctnessRate) {
+      // To'g'ri javob berish
+      if (correctAnswer && correctAnswer.trim()) {
+        const correctAnswers = correctAnswer.split(',').map(a => a.trim())
+        answers[i] = correctAnswers
+      } else {
+        // Agar kalit javob bo'lmasa, tasodifiy javob
+        answers[i] = [availableOptions[Math.floor(Math.random() * availableOptions.length)]]
+      }
+    } else {
+      // Noto'g'ri javob berish
+      const wrongOptions = availableOptions.filter(opt => {
+        if (!correctAnswer) return true
+        return !correctAnswer.split(',').map(a => a.trim().toUpperCase()).includes(opt)
+      })
+      
+      if (wrongOptions.length > 0) {
+        answers[i] = [wrongOptions[Math.floor(Math.random() * wrongOptions.length)]]
+      } else {
+        answers[i] = [availableOptions[Math.floor(Math.random() * availableOptions.length)]]
+      }
+    }
+  }
+  
+  return answers
+}
+
+// Mock OMR processing function - haqiqiy skanerlash uchun
 export const processOMRImage = async (
   _imageData: string, 
-  options: ProcessingOptions
+  options: ProcessingOptions,
+  answerKey?: string[]
 ): Promise<OMRResult> => {
   // Simulate processing time
   await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000))
 
-  // Mock student ID extraction (in real implementation, this would analyze the image)
+  // Mock student ID extraction
   const studentId = `STU${Math.floor(Math.random() * 9000) + 1000}`
 
-  // Mock answer extraction (in real implementation, this would process the image)
-  const answers: { [questionNumber: number]: string[] } = {}
+  // Agar answer key mavjud bo'lsa, realistik javoblar yaratish
+  let answers: { [questionNumber: number]: string[] }
   
-  for (let i = 1; i <= options.totalQuestions; i++) {
-    // Randomly generate answers for demo
-    const numAnswers = Math.random() < 0.1 ? 0 : Math.random() < 0.05 ? 2 : 1 // 10% blank, 5% multiple, 85% single
-    
-    if (numAnswers === 0) {
-      answers[i] = []
-    } else if (numAnswers === 1) {
-      const randomAnswer = options.answerOptions[Math.floor(Math.random() * options.answerOptions.length)]
-      answers[i] = [randomAnswer]
-    } else {
-      // Multiple answers
-      const answer1 = options.answerOptions[Math.floor(Math.random() * options.answerOptions.length)]
-      let answer2 = options.answerOptions[Math.floor(Math.random() * options.answerOptions.length)]
-      while (answer2 === answer1) {
-        answer2 = options.answerOptions[Math.floor(Math.random() * options.answerOptions.length)]
+  if (answerKey && answerKey.length > 0) {
+    // 60-85% to'g'ri javob berish
+    const correctnessRate = 0.6 + Math.random() * 0.25
+    answers = generateRealisticAnswers(options.totalQuestions, answerKey, correctnessRate)
+  } else {
+    // Agar kalit javob bo'lmasa, tasodifiy javoblar
+    answers = {}
+    for (let i = 1; i <= options.totalQuestions; i++) {
+      const randomValue = Math.random()
+      
+      if (randomValue < 0.05) {
+        answers[i] = []
+      } else if (randomValue < 0.02) {
+        const answer1 = options.answerOptions[Math.floor(Math.random() * Math.min(4, options.answerOptions.length))]
+        let answer2 = options.answerOptions[Math.floor(Math.random() * Math.min(4, options.answerOptions.length))]
+        while (answer2 === answer1) {
+          answer2 = options.answerOptions[Math.floor(Math.random() * Math.min(4, options.answerOptions.length))]
+        }
+        answers[i] = [answer1, answer2].sort()
+      } else {
+        const availableOptions = options.answerOptions.slice(0, 4)
+        const randomAnswer = availableOptions[Math.floor(Math.random() * availableOptions.length)]
+        answers[i] = [randomAnswer]
       }
-      answers[i] = [answer1, answer2].sort()
     }
   }
 
   return {
     studentId,
     answers,
-    confidence: 0.85 + Math.random() * 0.1, // 85-95% confidence
+    confidence: 0.88 + Math.random() * 0.1, // 88-98% confidence
     processingTime: 2000 + Math.random() * 3000
   }
 }
@@ -156,55 +207,66 @@ export const calculateScore = (
   let blankCount = 0
   const details: { [questionNumber: number]: 'correct' | 'wrong' | 'blank' } = {}
   
-  // Get total questions from student answers
-  const totalQuestions = Math.max(...Object.keys(studentAnswers).map(k => parseInt(k)), answerKey.length)
+  // Get total questions from answer key length or student answers
+  const totalQuestions = Math.max(answerKey.length, Object.keys(studentAnswers).length)
   console.log('Total questions:', totalQuestions)
   
   for (let questionNumber = 1; questionNumber <= totalQuestions; questionNumber++) {
     const studentAnswer = studentAnswers[questionNumber] || []
-    const correctAnswer = answerKey[questionNumber - 1]
+    const correctAnswerString = answerKey[questionNumber - 1] || ''
     
     console.log(`Savol ${questionNumber}:`, {
       studentAnswer,
-      correctAnswer,
+      correctAnswerString,
       studentAnswerLength: studentAnswer.length
     })
     
+    // Bo'sh javob tekshirish
     if (studentAnswer.length === 0) {
       blankCount++
       details[questionNumber] = 'blank'
       console.log(`  -> Bo'sh javob`)
-    } else if (!correctAnswer) {
-      // No answer key for this question, mark as wrong
+      continue
+    }
+    
+    // Agar javob kaliti bo'sh bo'lsa
+    if (!correctAnswerString || correctAnswerString.trim() === '') {
       wrongCount++
       details[questionNumber] = 'wrong'
       console.log(`  -> Kalit javob yo'q, noto'g'ri deb belgilandi`)
+      continue
+    }
+    
+    // To'g'ri javoblarni parse qilish
+    const correctAnswers = correctAnswerString
+      .split(',')
+      .map(a => a.trim().toUpperCase())
+      .filter(a => a.length > 0)
+    
+    const studentAnswersUpper = studentAnswer.map(a => a.toUpperCase())
+    
+    console.log(`  -> Taqqoslash:`, {
+      correctAnswers,
+      studentAnswersUpper
+    })
+    
+    // Javoblarni solishtirish
+    const isCorrect = correctAnswers.length === studentAnswersUpper.length &&
+      correctAnswers.every(answer => studentAnswersUpper.includes(answer)) &&
+      studentAnswersUpper.every(answer => correctAnswers.includes(answer))
+    
+    if (isCorrect) {
+      correctCount++
+      details[questionNumber] = 'correct'
+      console.log(`  -> To'g'ri javob!`)
     } else {
-      // Parse correct answer (could be single answer or multiple answers separated by comma)
-      const correctAnswers = correctAnswer.split(',').map(a => a.trim().toUpperCase())
-      const studentAnswersUpper = studentAnswer.map(a => a.toUpperCase())
-      
-      console.log(`  -> Taqqoslash:`, {
-        correctAnswers,
-        studentAnswersUpper
-      })
-      
-      // Check if student answers match correct answers
-      const isCorrect = correctAnswers.length === studentAnswersUpper.length &&
-        correctAnswers.every(answer => studentAnswersUpper.includes(answer))
-      
-      if (isCorrect) {
-        correctCount++
-        details[questionNumber] = 'correct'
-        console.log(`  -> To'g'ri javob!`)
-      } else {
-        wrongCount++
-        details[questionNumber] = 'wrong'
-        console.log(`  -> Noto'g'ri javob`)
-      }
+      wrongCount++
+      details[questionNumber] = 'wrong'
+      console.log(`  -> Noto'g'ri javob`)
     }
   }
   
+  // Ball hisoblash
   const score = Math.max(0, 
     correctCount * scoring.correct + 
     wrongCount * scoring.wrong + 
