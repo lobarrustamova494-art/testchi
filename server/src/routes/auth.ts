@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Response } from 'express'
 import User from '../models/User.js'
 import { generateToken } from '../utils/jwt.js'
 import { validate, schemas } from '../middleware/validation.js'
@@ -31,7 +31,7 @@ router.post('/register', validate(schemas.register), async (req, res) => {
     console.log('User created successfully:', user._id)
 
     // Generate token
-    const token = generateToken(user._id)
+    const token = generateToken(user._id.toString())
     console.log('Token generated')
 
     res.status(201).json({
@@ -75,7 +75,7 @@ router.post('/login', validate(schemas.login), async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user._id)
+    const token = generateToken(user._id.toString())
 
     // Remove password from response
     user.password = undefined as any

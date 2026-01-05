@@ -1,8 +1,8 @@
-import { Document } from 'mongoose'
+import { Document, Types } from 'mongoose'
 import { Request } from 'express'
 
 export interface IUser extends Document {
-  _id: string
+  _id: Types.ObjectId
   name: string
   phone: string
   password: string
@@ -15,10 +15,10 @@ export interface IUser extends Document {
 }
 
 export interface ISubject extends Document {
-  _id: string
+  _id: Types.ObjectId
   name: string
   sections: ISection[]
-  createdBy: string
+  createdBy: Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
@@ -33,7 +33,7 @@ export interface ISection {
 }
 
 export interface IExam extends Document {
-  _id: string
+  _id: Types.ObjectId
   name: string
   date: string
   examSets: number
@@ -53,39 +53,39 @@ export interface IExam extends Document {
   includeLogo: boolean
   prefillStudentId: boolean
   compactLayout: boolean
-  createdBy: string
+  createdBy: Types.ObjectId
   isActive: boolean
   createdAt: Date
   updatedAt: Date
 }
 
 export interface IOMRSheet extends Document {
-  _id: string
-  examId: string
+  _id: Types.ObjectId
+  examId: Types.ObjectId
   setLetter: string // A, B, C, D
   filePath: string
   fileType: 'pdf' | 'webp'
-  createdBy: string
+  createdBy: Types.ObjectId
   createdAt: Date
 }
 
 export interface IStudent extends Document {
-  _id: string
+  _id: Types.ObjectId
   name: string
   rollNumber: string
   email?: string
   class: string
   section?: string
   isActive: boolean
-  createdBy: string
+  createdBy: Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
 
 export interface IExamResult extends Document {
-  _id: string
-  examId: string
-  studentId: string
+  _id: Types.ObjectId
+  examId: Types.ObjectId
+  studentId: Types.ObjectId
   answers: { [questionNumber: number]: string }
   score: number
   totalQuestions: number

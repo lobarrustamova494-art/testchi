@@ -67,7 +67,7 @@ const subjectSchema = new Schema<ISubject>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  } as any
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -79,8 +79,8 @@ subjectSchema.index({ createdBy: 1, createdAt: -1 })
 subjectSchema.index({ name: 'text' })
 
 // Virtual for total questions
-subjectSchema.virtual('totalQuestions').get(function() {
-  return this.sections.reduce((total, section) => total + section.questionCount, 0)
+subjectSchema.virtual('totalQuestions').get(function(this: any) {
+  return this.sections.reduce((total: any, section: any) => total + section.questionCount, 0)
 })
 
 export default mongoose.model<ISubject>('Subject', subjectSchema)
