@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { Request, Response } from 'express'
-import { AIService } from '../services/aiService'
+import { AIService } from '../services/aiService.js'
 import { authenticate } from '../middleware/auth.js'
 import Joi from 'joi'
 
