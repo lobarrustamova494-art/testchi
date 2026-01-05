@@ -1,100 +1,97 @@
 # Dependencies
-bs.dbs.db
-Thumes
-ehthumb
-.Trash00tlight-V1
-.Spo._*Store?
-e
-.DS_DS_Stores
-.enerated fil
-# OS g
-*~
+node_modules/
+server/node_modules/
 
-*.swo*.swp/
-.ideavscode/
-s
-. and filectoriesEditor dire
-# /
-temp/
-folders
-tmprary 
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+server/.env
 
-# Tempooutybook-.stors
-.out
-build outputorybook 
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+.out/
 
-# Sticubl
-p/les
-.cacheGatsby fi
+# Cache directories
+.cache/
+.parcel-cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
-# stxt
-dit
-.nunerate outpus build / ge
-# Nuxt.jt
-put
-.nexbuild out
-# Next.js ache
-e
-.parcel-cg/)
-.cach.orceljstps://parer cache (htl-bundl parce
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output
 
-#tes
-.env.t fileariablesronment vdotenv envi
-# ntegrity
-n-i file
-.yarrity# Yarn Integ'
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
 *.tgz
 
- 'npm pack Output of
-#
-_historyde_replstory
-.nonal REPL hi
-# Optio_umd/
+# Yarn Integrity file
+.yarn-integrity
 
-.rts2_cachee_es/_cach_cjs/
-.rts2.rts2_cache2_cache/
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
 
-.rptbundle cachee
+# Gatsby files
+.cache/
+public
 
-# Microntcach.esliche
- caional eslint
-# Opt.npm
-ry
-irectoche dal npm caontis/
+# Storybook build outputs
+.out
+.storybook-out
 
-# Opackageries
-jspm_py directopendenc
+# Temporary folders
+tmp/
+temp/
 
-# Det
-.nyc_outpuoverage cyc testcov
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# nage/
-*.lnbul
-cover istaikes ly tooly used bage directorver
-# Co
-
-*.pid.lockeed
-*.sids
-*.pidtime data
-p
-# Rung*
-debug.lo*
-lerna-.logdebugnpm-
-pr.log**
-yarn-erroebug.logog*
-yarn-d
-npm-debug.ls
-
-# Logn.localoductio
-.env.pr.localv.test
-.en.local.developmentl
-.envenv.locanv
-.les
-.enment variab
-
-# Envirot/
-build/uts
-dis# Build outpodules/
-
-r/node_m
-serveules/de_modno
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
