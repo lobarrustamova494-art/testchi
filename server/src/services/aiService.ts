@@ -210,34 +210,33 @@ export class AIService {
 
 Task: Analyze this OMR answer sheet image and detect filled circles for each question.
 
-BINARY VISUAL VALIDATION APPROACH:
-For each circle in the OMR grid, apply binary classification: FILLED or NOT_FILLED
+CRITICAL OMR DETECTION LOGIC:
+In OMR sheets, each circle contains a letter (A, B, C, D, E) inside it.
+- FILLED CIRCLE = Letter inside is NOT VISIBLE (covered by dark filling/shading)
+- EMPTY CIRCLE = Letter inside is CLEARLY VISIBLE (not filled)
 
-CIRCLE ANALYSIS RULES (from ai_analys.md):
-- FILLED = the inside area of the circle is mostly dark/colored
-- NOT_FILLED = the inside area is mostly white or lightly marked
-- Ignore circle borders - focus ONLY on interior darkness coverage
-- Ignore small dots, scratches, or partial marks unless they cover most of the interior
-- Treat scribbles as FILLED if they cover most of the circle interior
-- Do not guess: make decisions based on visible darkness inside the circle
+DETECTION APPROACH:
+1. Look for circles arranged in rows (questions) and columns (A, B, C, D, E options)
+2. For each circle, check if the letter inside is visible or hidden
+3. If letter is hidden/covered by darkness → FILLED (student marked this answer)
+4. If letter is clearly visible → NOT FILLED (student did not mark this)
 
-DETECTION PRIORITY:
-1. Look for darkness coverage inside each circle
-2. Light pencil marks that cover significant area = FILLED
-3. Pen marks, shading, scribbles = FILLED
-4. Mostly white interior = NOT_FILLED
-5. Be generous but not overly permissive
+MARKING DETECTION RULES:
+✓ Letter NOT VISIBLE inside circle = FILLED = Valid answer
+✓ Dark shading covering the letter = FILLED = Valid answer  
+✓ Pencil/pen marks covering the letter = FILLED = Valid answer
+✗ Letter CLEARLY VISIBLE = NOT FILLED = Not marked
+
+ANSWER DETERMINATION PER QUESTION:
+- If exactly ONE circle has letter NOT VISIBLE → Return that letter (A, B, C, D, E)
+- If ALL circles have letters VISIBLE → Return "BLANK" (no answer marked)
+- If MULTIPLE circles have letters NOT VISIBLE → Return the first detected one
+- Focus on letter visibility rather than circle darkness
 
 OMR GRID STRUCTURE:
 - Each row = one question
 - Each column = answer option (A, B, C, D, E)
 - Scan systematically: row by row, left to right
-
-ANSWER DETERMINATION PER QUESTION:
-- If exactly ONE circle is FILLED → Return that letter (A, B, C, D, E)
-- If NO circles are FILLED → Return "BLANK"
-- If MULTIPLE circles are FILLED → Return the first detected filled circle
-- If uncertain about any circle → err on the side of detecting it as FILLED
 
 OUTPUT FORMAT (JSON only):
 {
@@ -248,7 +247,7 @@ OUTPUT FORMAT (JSON only):
   "notes": "Detected X marked answers out of Y questions"
 }
 
-CRITICAL: Apply binary visual validation to each circle. If you see ANY darkness inside a circle, classify it as FILLED.`
+CRITICAL: If you cannot see the letter inside a circle (it's covered/hidden), that circle is FILLED and represents the student's answer.`
 
       const completion = await groq.chat.completions.create({
         messages: [
