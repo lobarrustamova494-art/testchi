@@ -212,6 +212,98 @@ export const preprocessImage = (imageData: string): Promise<string> => {
   })
 }
 
+// Brightness and contrast enhancement for dark images
+const enhanceBrightnessContrast = (imageData: ImageData): ImageData => {
+  const data = imageData.data
+  const brightness = 20 // Brightness adjustment
+  const contrast = 1.2  // Contrast multiplier
+  
+  for (let i = 0; i < data.length; i += 4) {
+    // Apply brightness and contrast to RGB channels
+    data[i] = Math.min(255, Math.max(0, (data[i] - 128) * contrast + 128 + brightness))     // Red
+    data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * contrast + 128 + brightness)) // Green
+    data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * contrast + 128 + brightness)) // Blue
+    // Alpha channel unchanged
+  }
+  
+  return imageData
+}
+
+// Noise reduction using simple averaging filter
+const reduceNoise = (imageData: ImageData): ImageData => {
+  const data = imageData.data
+  const width = imageData.width
+  const height = imageData.height
+  const newData = new Uint8ClampedArray(data)
+  
+  // Simple 3x3 averaging filter
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = (y * width + x) * 4
+      
+      for (let c = 0; c < 3; c++) { // RGB channels only
+        let sum = 0
+        let count = 0
+        
+        // 3x3 neighborhood
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nIdx = ((y + dy) * width + (x + dx)) * 4 + c
+            sum += data[nIdx]
+            count++
+          }
+        }
+        
+        newData[idx + c] = sum / count
+      }
+    }
+  }
+  
+  // Copy back to original
+  for (let i = 0; i < data.length; i++) {
+    data[i] = newData[i]
+  }
+  
+  return imageData
+}
+
+// Edge enhancement using unsharp masking
+const enhanceEdges = (imageData: ImageData): ImageData => {
+  const data = imageData.data
+  const width = imageData.width
+  const height = imageData.height
+  const newData = new Uint8ClampedArray(data)
+  
+  // Simple edge enhancement
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = (y * width + x) * 4
+      
+      for (let c = 0; c < 3; c++) { // RGB channels only
+        const center = data[idx + c]
+        
+        // Laplacian kernel for edge detection
+        const top = data[((y - 1) * width + x) * 4 + c]
+        const bottom = data[((y + 1) * width + x) * 4 + c]
+        const left = data[(y * width + (x - 1)) * 4 + c]
+        const right = data[(y * width + (x + 1)) * 4 + c]
+        
+        const laplacian = -4 * center + top + bottom + left + right
+        const enhanced = center + 0.5 * laplacian // Enhance edges
+        
+        newData[idx + c] = Math.min(255, Math.max(0, enhanced))
+      }
+    }
+  }
+  
+  // Copy back to original
+  for (let i = 0; i < data.length; i++) {
+    data[i] = newData[i]
+  }
+  
+  return imageData
+}
+
 // Binarization - qora/oq ga aylantirish
 const binarizeImage = (imageData: ImageData): ImageData => {
   const data = imageData.data
@@ -409,145 +501,6 @@ const checkBubbleFilled = (
   console.log(`    Bubble check: threshold=${adaptiveThreshold.toFixed(0)}, ${darkPixels}/${totalPixels} = ${(fillPercentage * 100).toFixed(1)}% -> ${isFilled ? 'FILLED' : 'EMPTY'}`)
   
   return isFilled
-}
-export const preprocessImage = (imageData: string): Promise<string> => {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      
-      if (!ctx) {
-        resolve(imageData)
-        return
-      }
-
-      canvas.width = img.width
-      canvas.height = img.height
-      
-      // Draw original image
-      ctx.drawImage(img, 0, 0)
-      
-      // Apply advanced preprocessing
-      let imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      
-      // 1. Brightness and contrast enhancement for dark images
-      imageDataObj = enhanceBrightnessContrast(imageDataObj)
-      
-      // 2. Noise reduction
-      imageDataObj = reduceNoise(imageDataObj)
-      
-      // 3. Edge enhancement
-      imageDataObj = enhanceEdges(imageDataObj)
-      
-      ctx.putImageData(imageDataObj, 0, 0)
-      resolve(canvas.toDataURL('image/jpeg', 0.95))
-    }
-    
-    img.src = imageData
-  })
-}
-
-// Brightness and contrast enhancement
-const enhanceBrightnessContrast = (imageData: ImageData): ImageData => {
-  const data = imageData.data
-  
-  // Calculate average brightness
-  let totalBrightness = 0
-  for (let i = 0; i < data.length; i += 4) {
-    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3
-    totalBrightness += brightness
-  }
-  const avgBrightness = totalBrightness / (data.length / 4)
-  
-  // Adaptive contrast and brightness
-  const targetBrightness = 128
-  const brightnessAdjustment = targetBrightness - avgBrightness
-  const contrast = avgBrightness < 100 ? 1.5 : 1.2 // More contrast for dark images
-  
-  for (let i = 0; i < data.length; i += 4) {
-    // Apply contrast first, then brightness
-    data[i] = Math.min(255, Math.max(0, (data[i] - 128) * contrast + 128 + brightnessAdjustment))
-    data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * contrast + 128 + brightnessAdjustment))
-    data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * contrast + 128 + brightnessAdjustment))
-  }
-  
-  return imageData
-}
-
-// Noise reduction using simple blur
-const reduceNoise = (imageData: ImageData): ImageData => {
-  const data = imageData.data
-  const width = imageData.width
-  const height = imageData.height
-  const newData = new Uint8ClampedArray(data)
-  
-  // Simple 3x3 blur kernel for noise reduction
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = (y * width + x) * 4
-      
-      for (let c = 0; c < 3; c++) {
-        let sum = 0
-        let count = 0
-        
-        // 3x3 neighborhood
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const neighborIdx = ((y + dy) * width + (x + dx)) * 4 + c
-            sum += data[neighborIdx]
-            count++
-          }
-        }
-        
-        newData[idx + c] = sum / count
-      }
-    }
-  }
-  
-  return new ImageData(newData, width, height)
-}
-
-// Edge enhancement for better bubble detection
-const enhanceEdges = (imageData: ImageData): ImageData => {
-  const data = imageData.data
-  const width = imageData.width
-  const height = imageData.height
-  const newData = new Uint8ClampedArray(data)
-  
-  // Sobel edge detection kernel
-  const sobelX = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]
-  const sobelY = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]
-  
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = (y * width + x) * 4
-      
-      let gx = 0, gy = 0
-      
-      // Apply Sobel operator
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          const neighborIdx = ((y + dy) * width + (x + dx)) * 4
-          const gray = (data[neighborIdx] + data[neighborIdx + 1] + data[neighborIdx + 2]) / 3
-          
-          gx += gray * sobelX[dy + 1][dx + 1]
-          gy += gray * sobelY[dy + 1][dx + 1]
-        }
-      }
-      
-      const magnitude = Math.sqrt(gx * gx + gy * gy)
-      const enhanced = Math.min(255, magnitude * 0.5)
-      
-      // Blend with original
-      const originalGray = (data[idx] + data[idx + 1] + data[idx + 2]) / 3
-      const blended = originalGray * 0.7 + enhanced * 0.3
-      
-      newData[idx] = newData[idx + 1] = newData[idx + 2] = blended
-    }
-  }
-  
-  return new ImageData(newData, width, height)
 }
 
 // Validate OMR sheet structure - xira va bukilgan rasmlarni ham qabul qilish
