@@ -7,6 +7,51 @@ import { AuthRequest } from '../types/index.js'
 
 const router = express.Router()
 
+/**
+ * Answer key validation va normalizatsiya
+ */
+function validateAndNormalizeAnswerKey(answerKey: string[]): string[] {
+  if (!Array.isArray(answerKey)) {
+    throw new Error('Answer key array bo\'lishi kerak')
+  }
+
+  const validOptions = ['A', 'B', 'C', 'D', 'E']
+  const normalizedKey: string[] = []
+
+  for (let i = 0; i < answerKey.length; i++) {
+    const answer = answerKey[i]
+    
+    if (!answer || answer.trim() === '') {
+      // Bo'sh javob - BLANK sifatida saqlash
+      normalizedKey.push('')
+      continue
+    }
+
+    // Multiple answers (comma separated) ni normalize qilish
+    const answers = answer.split(',')
+      .map(a => a.trim().toUpperCase())
+      .filter(a => a !== '')
+      .filter(a => validOptions.includes(a))
+      .sort()
+
+    if (answers.length === 0) {
+      // Hech qanday valid javob topilmadi
+      normalizedKey.push('')
+    } else {
+      // Valid javoblarni join qilish
+      normalizedKey.push(answers.join(','))
+    }
+  }
+
+  console.log('Answer key validation completed:', {
+    original: answerKey,
+    normalized: normalizedKey,
+    totalQuestions: normalizedKey.length
+  })
+
+  return normalizedKey
+}
+
 // Get all exams for current user
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
@@ -93,6 +138,13 @@ router.post('/', authenticate, validate(schemas.createExam), async (req: AuthReq
 router.put('/:id', authenticate, validate(schemas.updateExam), async (req: AuthRequest, res) => {
   try {
     console.log('Update exam request body:', req.body)
+    
+    // Answer key validation va normalizatsiya
+    if (req.body.answerKey) {
+      const normalizedAnswerKey = validateAndNormalizeAnswerKey(req.body.answerKey)
+      req.body.answerKey = normalizedAnswerKey
+      console.log('Normalized answer key:', normalizedAnswerKey)
+    }
     
     const exam = await Exam.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user!._id },

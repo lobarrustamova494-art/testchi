@@ -121,13 +121,21 @@ const ExamScanner: React.FC = () => {
 
   const processWithAI = async (imageData: string) => {
     if (!exam || !exam.answerKey || exam.answerKey.length === 0) {
-      setError('Imtihon kalitlari belgilanmagan')
+      setError('Imtihon kalitlari belgilanmagan. Avval kalitlarni belgilang.')
+      return
+    }
+
+    // Answer key validation
+    const totalQuestions = getTotalQuestions(exam)
+    if (exam.answerKey.length !== totalQuestions) {
+      setError(`Kalitlar soni (${exam.answerKey.length}) savollar soniga (${totalQuestions}) mos kelmaydi`)
       return
     }
 
     console.log('=== AI TAHLIL BOSHLANDI ===')
     console.log('Exam data:', exam)
     console.log('Answer key:', exam.answerKey)
+    console.log('Total questions:', totalQuestions)
     console.log('Scoring:', exam.scoring)
 
     setAiAnalyzing(true)
@@ -161,6 +169,11 @@ const ExamScanner: React.FC = () => {
       const processingTime = Date.now() - startTime
       
       console.log('AI Result:', aiResult)
+
+      // Suspicious answers check
+      if (aiResult.suspiciousAnswers && aiResult.suspiciousAnswers > 0) {
+        console.warn(`${aiResult.suspiciousAnswers} ta shubhali javob aniqlandi`)
+      }
       
       // Natijani formatlash
       const result: ScanResult = {
@@ -181,6 +194,12 @@ const ExamScanner: React.FC = () => {
       
       console.log('Final AI Result:', result)
       setScanResult(result)
+
+      // Low confidence warning
+      if (aiResult.confidence < 0.7) {
+        setError(`Tahlil ishonchliligi past (${(aiResult.confidence * 100).toFixed(0)}%). Rasmni qayta oling yoki qo'lda tekshiring.`)
+      }
+
     } catch (error: any) {
       console.error('AI tahlil xatosi:', error)
       setError('AI tahlil qilishda xatolik yuz berdi: ' + error.message)
@@ -445,25 +464,87 @@ const ExamScanner: React.FC = () => {
         <Card className="mb-6">
           <div className="flex items-center gap-3 mb-4">
             <FileText size={24} className="text-primary" />
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
                 {exam?.name}
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                {getTotalQuestions(exam)} ta savol
+                {exam?.date} • {getTotalQuestions(exam)} ta savol
               </p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                Kalitlar: {exam?.answerKey?.length || 0}/{getTotalQuestions(exam)}
+              </div>
+              {exam?.answerKey && exam.answerKey.length > 0 && (
+                <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  ✓ Kalitlar belgilangan
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Answer Key Preview */}
+          {exam?.answerKey && exam.answerKey.length > 0 && (
+            <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Kalitlar ko'rinishi:
+              </div>
+              <div className="grid grid-cols-5 md:grid-cols-10 gap-2 text-xs">
+                {exam.answerKey.slice(0, 20).map((answer, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <span className="text-slate-500">{index + 1}:</span>
+                    <span className="font-mono text-primary">
+                      {answer || 'BLANK'}
+                    </span>
+                  </div>
+                ))}
+                {exam.answerKey.length > 20 && (
+                  <div className="text-slate-400">
+                    +{exam.answerKey.length - 20} ko'proq...
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Scoring Info */}
+          <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-green-600 dark:text-green-400 font-semibold">
+                +{exam?.scoring?.correct || 1}
+              </div>
+              <div className="text-xs text-green-600 dark:text-green-400">
+                To'g'ri javob
+              </div>
+            </div>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <div className="text-red-600 dark:text-red-400 font-semibold">
+                {exam?.scoring?.wrong || 0}
+              </div>
+              <div className="text-xs text-red-600 dark:text-red-400">
+                Noto'g'ri javob
+              </div>
+            </div>
+            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="text-slate-600 dark:text-slate-400 font-semibold">
+                {exam?.scoring?.blank || 0}
+              </div>
+              <div className="text-xs text-slate-600 dark:text-slate-400">
+                Bo'sh javob
+              </div>
             </div>
           </div>
           
           {!exam?.answerKey || exam.answerKey.length === 0 ? (
-            <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg mt-4">
               <AlertCircle size={20} className="text-yellow-600 dark:text-yellow-400" />
               <span className="text-yellow-700 dark:text-yellow-300 text-sm">
                 Diqqat: Imtihon kalitlari belgilanmagan. Avval kalitlarni belgilang.
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg mt-4">
               <Check size={20} className="text-green-600 dark:text-green-400" />
               <span className="text-green-700 dark:text-green-300 text-sm">
                 Kalitlar belgilangan. Skanerlash uchun tayyor.
@@ -544,7 +625,7 @@ const ExamScanner: React.FC = () => {
                   AI tomonidan tahlil qilinmoqda...
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                  Sun'iy intellekt OMR varaqni tahlil qilmoqda va javoblarni aniqlayapti
+                  Sun'iy intellekt Test varaqni tahlil qilmoqda va javoblarni aniqlayapti
                 </p>
                 <ProgressBar 
                   value={analysisProgress} 

@@ -94,7 +94,7 @@ const CameraScanner: React.FC<CameraScannerProps> = ({ onCapture, onClose, isSca
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/50 text-white">
-        <h2 className="text-lg font-semibold">OMR Varaqni Skanerlash</h2>
+        <h2 className="text-lg font-semibold">Test Varaqni Skanerlash</h2>
         <button
           onClick={onClose}
           className="p-2 hover:bg-white/20 rounded-full transition-colors"

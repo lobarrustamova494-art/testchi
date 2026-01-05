@@ -22,12 +22,14 @@ export interface OMRAnalysisResult {
   blankAnswers: number
   totalScore: number
   confidence: number
+  suspiciousAnswers?: number
   detailedResults: Array<{
     questionNumber: number
     studentAnswer: string
     correctAnswer: string
     isCorrect: boolean
     score: number
+    isSuspicious?: boolean
   }>
 }
 
@@ -141,7 +143,7 @@ export class AIService {
       return response.data || {} as OMRAnalysisResult
     } catch (error) {
       console.error('OMR tahlil xatosi:', error)
-      throw new Error('OMR varaqni tahlil qilishda xatolik yuz berdi')
+      throw new Error('Test varaqni tahlil qilishda xatolik yuz berdi')
     }
   }
 
