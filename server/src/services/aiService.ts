@@ -208,61 +208,61 @@ export class AIService {
     try {
       const prompt = `You are a computer vision AI specialized in OMR (Optical Mark Recognition) analysis.
 
+CRITICAL: BE CONSISTENT AND ACCURATE IN EVERY ANALYSIS
+
 Task: Analyze this OMR answer sheet image and detect filled circles for each question with EXACT PRECISION.
 
-CRITICAL: VISUAL ANALYSIS METHOD
-Look at the image exactly like a human would:
-1. Find each question row (numbered 1, 2, 3, etc.)
-2. In each row, look at the 5 circles from LEFT to RIGHT
-3. Identify which circles are FILLED (dark/black) vs EMPTY (white with visible letters)
+MANDATORY ANALYSIS STEPS:
+1. Identify the OMR grid structure
+2. Count total questions (rows)
+3. For each question row, identify 5 circles from LEFT to RIGHT
+4. Determine which circle is FILLED (dark/black) vs EMPTY (white)
+5. Map the filled position to corresponding letter
 
-EXACT VISUAL IDENTIFICATION:
-- FILLED CIRCLE = Completely dark/black circle (letter inside is hidden)
-- EMPTY CIRCLE = White circle with clearly visible letter (A, B, C, D, E)
+VISUAL DETECTION RULES (STRICT):
+- FILLED CIRCLE = Completely dark/black circle (●)
+- EMPTY CIRCLE = White/light circle with visible letter (○)
+- IGNORE partial marks, light shading, or unclear marks
+- ONLY count circles that are COMPLETELY FILLED/DARK
 
-POSITION MAPPING (LEFT TO RIGHT):
+POSITION MAPPING (ABSOLUTE):
 Position 1 (LEFTMOST) = A
 Position 2 = B
-Position 3 (MIDDLE) = C  
+Position 3 (MIDDLE) = C
 Position 4 = D
 Position 5 (RIGHTMOST) = E
 
-STEP-BY-STEP ANALYSIS FOR EACH QUESTION:
-1. Look at question row
-2. Scan circles from LEFT to RIGHT
-3. Identify which circle is FILLED (dark/black)
-4. Map that position to letter:
-   - If 1st circle (leftmost) is filled → "A"
-   - If 2nd circle is filled → "B"
-   - If 3rd circle (middle) is filled → "C"
-   - If 4th circle is filled → "D"
-   - If 5th circle (rightmost) is filled → "E"
-   - If NO circles are filled → "BLANK"
+CONSISTENCY REQUIREMENTS:
+- Use the SAME analysis method for every question
+- Apply the SAME visual criteria for filled vs empty
+- Count positions in the SAME order (LEFT to RIGHT)
+- Map positions to letters using the SAME mapping
+
+STEP-BY-STEP ANALYSIS (MANDATORY):
+For each question row:
+1. Locate exactly 5 circles in the row
+2. Examine each circle from LEFT to RIGHT
+3. Identify which ONE circle is completely filled/dark
+4. Determine its position (1st, 2nd, 3rd, 4th, or 5th)
+5. Map position to letter: 1=A, 2=B, 3=C, 4=D, 5=E
+6. If NO circles are filled, answer is "BLANK"
+
+QUALITY CONTROL:
+- Double-check each position mapping
+- Verify LEFT to RIGHT counting
+- Ensure consistent visual criteria
+- Validate final answer mapping
 
 EXAMPLE ANALYSIS:
-Question 1: [●] [○] [○] [○] [○]  → Answer: "A" (1st position filled)
-Question 2: [○] [●] [○] [○] [○]  → Answer: "B" (2nd position filled)
-Question 3: [○] [○] [○] [○] [○]  → Answer: "BLANK" (no position filled)
+Row 1: [●] [○] [○] [○] [○] → Position 1 filled → Answer: "A"
+Row 2: [○] [●] [○] [○] [○] → Position 2 filled → Answer: "B"
+Row 3: [○] [○] [○] [○] [○] → No position filled → Answer: "BLANK"
 
-VISUAL DETECTION RULES:
-✓ Dark/black filled circle = FILLED
-✓ White circle with visible letter = EMPTY
-✓ Only count completely filled circles
-✓ Ignore partial marks or light shading
-
-SCANNING INSTRUCTIONS:
-1. Start from top question (Question 1)
-2. For each question, look at 5 circles from LEFT to RIGHT
-3. Identify the FILLED (dark) circle
-4. Determine its position (1st, 2nd, 3rd, 4th, or 5th)
-5. Map position to letter (1=A, 2=B, 3=C, 4=D, 5=E)
-6. Move to next question
-
-ACCURACY REQUIREMENTS:
-- Be as precise as a human examining the image
-- Look for clear visual differences between filled and empty circles
-- Count positions exactly from LEFT to RIGHT
-- Map positions to letters correctly
+ERROR PREVENTION:
+- Do NOT change analysis method between questions
+- Do NOT interpret partial marks as filled
+- Do NOT confuse position order
+- Do NOT vary visual criteria
 
 OUTPUT FORMAT (JSON only):
 {
@@ -270,10 +270,11 @@ OUTPUT FORMAT (JSON only):
   "confidence": 0.95,
   "imageQuality": 0.9,
   "totalQuestions": 10,
-  "notes": "Detected X marked answers out of Y questions"
+  "notes": "Detected X marked answers out of Y questions",
+  "analysisMethod": "Consistent visual detection with fixed position mapping"
 }
 
-CRITICAL: Analyze each circle visually like a human would - look for dark filled circles vs white empty circles, then map the position to the correct letter.`
+CRITICAL: Apply the EXACT SAME analysis method to every single question. Be completely consistent in your visual detection and position mapping.`
 
       const completion = await groq.chat.completions.create({
         messages: [
@@ -294,9 +295,10 @@ CRITICAL: Analyze each circle visually like a human would - look for dark filled
           }
         ],
         model: "meta-llama/llama-4-scout-17b-16e-instruct",
-        temperature: 0.1,
+        temperature: 0.0, // Completely deterministic
         max_tokens: 2048,
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        seed: 12345 // Fixed seed for consistency
       })
 
       const response = completion.choices[0]?.message?.content
