@@ -215,11 +215,32 @@ In OMR sheets, each circle contains a letter (A, B, C, D, E) inside it.
 - FILLED CIRCLE = Letter inside is NOT VISIBLE (covered by dark filling/shading)
 - EMPTY CIRCLE = Letter inside is CLEARLY VISIBLE (not filled)
 
+OMR SHEET STRUCTURE AND ANSWER MAPPING:
+Each question row has 5 circles arranged horizontally from LEFT to RIGHT:
+Position 1 (leftmost) = A
+Position 2 = B  
+Position 3 (middle) = C
+Position 4 = D
+Position 5 (rightmost) = E
+
+EXAMPLE LAYOUT:
+Question 1:  (A) (B) (C) (D) (E)  ← Left to Right order
+Question 2:  (A) (B) (C) (D) (E)
+Question 3:  (A) (B) (C) (D) (E)
+
+POSITION-TO-LETTER MAPPING:
+- If 1st circle (leftmost) has letter NOT VISIBLE → Answer is "A"
+- If 2nd circle has letter NOT VISIBLE → Answer is "B"
+- If 3rd circle (middle) has letter NOT VISIBLE → Answer is "C"
+- If 4th circle has letter NOT VISIBLE → Answer is "D"
+- If 5th circle (rightmost) has letter NOT VISIBLE → Answer is "E"
+
 DETECTION APPROACH:
-1. Look for circles arranged in rows (questions) and columns (A, B, C, D, E options)
-2. For each circle, check if the letter inside is visible or hidden
-3. If letter is hidden/covered by darkness → FILLED (student marked this answer)
-4. If letter is clearly visible → NOT FILLED (student did not mark this)
+1. Identify question rows (horizontal lines of 5 circles)
+2. For each row, examine circles from LEFT to RIGHT
+3. Check each circle: Can you see the letter inside clearly?
+4. If letter is hidden/covered → That position is FILLED
+5. Map the position to corresponding letter (1st=A, 2nd=B, 3rd=C, 4th=D, 5th=E)
 
 MARKING DETECTION RULES:
 ✓ Letter NOT VISIBLE inside circle = FILLED = Valid answer
@@ -228,15 +249,20 @@ MARKING DETECTION RULES:
 ✗ Letter CLEARLY VISIBLE = NOT FILLED = Not marked
 
 ANSWER DETERMINATION PER QUESTION:
-- If exactly ONE circle has letter NOT VISIBLE → Return that letter (A, B, C, D, E)
+- If exactly ONE circle has letter NOT VISIBLE → Return corresponding letter
+  * 1st position (leftmost) = "A"
+  * 2nd position = "B"
+  * 3rd position (middle) = "C"
+  * 4th position = "D"
+  * 5th position (rightmost) = "E"
 - If ALL circles have letters VISIBLE → Return "BLANK" (no answer marked)
-- If MULTIPLE circles have letters NOT VISIBLE → Return the first detected one
-- Focus on letter visibility rather than circle darkness
+- If MULTIPLE circles have letters NOT VISIBLE → Return the leftmost one
 
-OMR GRID STRUCTURE:
-- Each row = one question
-- Each column = answer option (A, B, C, D, E)
-- Scan systematically: row by row, left to right
+SCANNING ORDER:
+1. Scan image from TOP to BOTTOM (question by question)
+2. For each question row, scan from LEFT to RIGHT (A, B, C, D, E)
+3. Identify which position has hidden letter
+4. Map position to letter: Position 1=A, Position 2=B, Position 3=C, Position 4=D, Position 5=E
 
 OUTPUT FORMAT (JSON only):
 {
@@ -247,7 +273,9 @@ OUTPUT FORMAT (JSON only):
   "notes": "Detected X marked answers out of Y questions"
 }
 
-CRITICAL: If you cannot see the letter inside a circle (it's covered/hidden), that circle is FILLED and represents the student's answer.`
+CRITICAL: 
+- Scan LEFT to RIGHT: 1st circle=A, 2nd=B, 3rd=C, 4th=D, 5th=E
+- If you cannot see the letter inside a circle (it's covered/hidden), identify which position it is and return the corresponding letter.`
 
       const completion = await groq.chat.completions.create({
         messages: [
