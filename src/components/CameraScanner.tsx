@@ -36,8 +36,8 @@ const CameraScanner: React.FC<CameraScannerProps> = ({ onCapture, onClose, isSca
       const constraints = {
         video: {
           facingMode: facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          width: { ideal: 2560, min: 1280 }, // Increased resolution
+          height: { ideal: 1440, min: 720 }  // Increased resolution
         }
       }
 
@@ -79,8 +79,8 @@ const CameraScanner: React.FC<CameraScannerProps> = ({ onCapture, onClose, isSca
     // Draw video frame to canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
-    // Get image data as base64
-    const imageData = canvas.toDataURL('image/jpeg', 0.8)
+    // Get image data as base64 with higher quality
+    const imageData = canvas.toDataURL('image/jpeg', 0.95) // Increased quality from 0.8 to 0.95
     
     // Call parent callback
     onCapture(imageData)

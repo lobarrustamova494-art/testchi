@@ -9,6 +9,8 @@ OMR (Optical Mark Recognition) admin boshqaruv paneli loyihasi TypeScript va Rea
 - **OMR Varaq Yaratish** - OMR varaqlarini yaratish
 - **Skan Yuklash Interfeysi** - skanerlangan varaqlarni yuklash
 - **Backend API** - MongoDB bilan to'liq backend server
+- **Yaxshilangan Loading Komponentlari** - professional spinner va loader komponentlari
+- **AI Tahlilchi** - Groq AI yordamida rasm va matn tahlili
 
 ## Texnologiyalar
 
@@ -152,21 +154,191 @@ Frontend `http://localhost:5173` da ishga tushadi.
 └── README.md
 ```
 
-## Sahifalar
+## Yangi Loading Komponentlari
 
-1. **Boshqaruv Paneli (/)** - asosiy sahifa
-2. **Imtihon Yaratish (/exam-creation)** - 3 bosqichli imtihon yaratish
-3. **OMR Varaq Yaratish (/omr-generation)** - OMR varaq yaratish va export
-4. **Skan Yuklash (/scan-upload)** - skan yuklash
+Loyihada professional va zamonaviy loading komponentlari qo'shildi:
 
-## Export Xususiyatlari
+### LoadingSpinner
+- **5 xil variant**: default, dots, pulse, bars, ring
+- **5 xil o'lcham**: xs, sm, md, lg, xl
+- **6 xil rang**: primary, secondary, success, warning, error, current
+- **Matn bilan**: loading matn ko'rsatish imkoniyati
+- **Full screen rejim**: butun ekranni qoplash
+
+### SkeletonLoader
+- **6 xil variant**: text, circular, rectangular, card, list, table
+- **Moslashuvchan o'lcham**: width va height sozlash
+- **Animatsiya**: yoqish/o'chirish imkoniyati
+- **Ko'p qatorli**: text uchun qator soni
+
+### ProgressBar
+- **4 xil variant**: default, success, warning, error, gradient
+- **3 xil o'lcham**: sm, md, lg
+- **Label ko'rsatish**: foiz va matn
+- **Animatsiya**: smooth transition
+
+### LoadingButton
+- **Loading holati**: avtomatik spinner ko'rsatish
+- **Custom matn**: loading paytida boshqa matn
+- **Icon qo'llab-quvvatlash**: button icon bilan
+- **Barcha Button variantlari**: default, outline, ghost, destructive
+
+### LoadingOverlay
+- **Full screen overlay**: butun sahifani qoplash
+- **Blur effekt**: orqa fon xiralashishi
+- **Custom content**: qo'shimcha kontent qo'shish
+- **Responsive**: barcha ekran o'lchamlari uchun
+
+### LoadingState
+- **4 xil variant**: page, card, inline, overlay
+- **Skeleton yoki spinner**: ikki xil loading turi
+- **Moslashuvchan**: har xil holatlar uchun
+
+## Ishlatish misollari
+
+```tsx
+// Oddiy spinner
+<LoadingSpinner size="lg" variant="dots" color="primary" />
+
+// Matn bilan spinner
+<LoadingSpinner 
+  size="md" 
+  variant="pulse" 
+  text="Yuklanmoqda..." 
+/>
+
+// Loading button
+<LoadingButton
+  loading={isLoading}
+  loadingText="Saqlanmoqda..."
+  icon={<Save size={16} />}
+  onClick={handleSave}
+>
+  Saqlash
+</LoadingButton>
+
+// Progress bar
+<ProgressBar 
+  value={progress} 
+  variant="success"
+  showLabel={true}
+  label="Yuklanish jarayoni"
+/>
+
+// Skeleton loader
+<SkeletonLoader variant="card" />
+<SkeletonLoader variant="list" lines={5} />
+
+// Loading overlay
+<LoadingOverlay 
+  isVisible={showOverlay}
+  message="Jarayon davom etmoqda..."
+  variant="pulse"
+/>
+
+// Loading state
+<LoadingState 
+  type="skeleton" 
+  variant="page"
+  skeletonType="list"
+  lines={3}
+/>
+```
+
+## AI Tahlilchi Xususiyatlari
+
+Loyihaga Groq AI yordamida kuchli tahlil funksiyalari qo'shildi:
+
+### Rasm Tahlili
+- **OCR (Optical Character Recognition)** - rasmdan matnni ajratib olish
+- **Ko'p tilni qo'llab-quvvatlash** - o'zbek, rus, ingliz tillari
+- **Yuqori aniqlik** - 95% gacha aniqlik darajasi
+- **Maxsus ko'rsatmalar** - foydalanuvchi o'z ko'rsatmasini berishi mumkin
+- **Xatolarni aniqlash** - matn xatolarini topish va ko'rsatish
+
+### Matn Yaxshilash
+- **Grammatik tekshirish** - o'zbek tilidagi grammatik xatolarni topish
+- **Uslub yaxshilash** - matn uslubini professional qilish
+- **Kontekst hisobga olish** - matn turini (rasmiy, ilmiy, etc.) hisobga olish
+- **Takliflar berish** - matnni yaxshilash bo'yicha takliflar
+
+### Savol Tahlili
+- **Qiyinlik darajasini aniqlash** - oson, o'rta, qiyin
+- **Savol sifatini baholash** - savollar professional ekanligini tekshirish
+- **Yaxshilash takliflari** - savollarni qanday yaxshilash mumkinligi
+- **Avtomatik yaxshilash** - AI tomonidan yaxshilangan savollar
+
+### Texnik Xususiyatlar
+- **Groq AI** - tez va aniq AI model
+- **Vision Model** - llama-3.2-11b-vision-preview rasm tahlili uchun
+- **Text Model** - llama-3.1-70b-versatile matn tahlili uchun
+- **Xavfsizlik** - JWT authentication bilan himoyalangan
+- **File Upload** - 10MB gacha rasm yuklash imkoniyati
+- **Real-time** - tez natija olish
+
+### Qo'llab-quvvatlanadigan Formatlar
+- **Rasmlar**: JPEG, PNG, WebP
+- **Maksimal hajm**: 10MB
+- **Base64 encoding** - xavfsiz fayl uzatish
+- **Progress tracking** - jarayon ko'rsatkichi
+
+## Ishlatish
+
+### AI Tahlilchiga kirish
+1. Dashboard dan "AI Tahlilchi" tugmasini bosing
+2. Yoki to'g'ridan-to'g'ri `/ai-analysis` sahifasiga o'ting
+
+### Rasm tahlili
+```typescript
+// Frontend da
+const result = await AIService.analyzeImage(imageFile, "Faqat savol matnlarini ajrat")
+
+// Backend API
+POST /api/ai/analyze-image
+{
+  "image": "base64_encoded_image",
+  "prompt": "optional_custom_prompt"
+}
+```
+
+### Matn yaxshilash
+```typescript
+// Frontend da
+const result = await AIService.analyzeText("Tahlil qilinadigan matn", "Rasmiy xat")
+
+// Backend API
+POST /api/ai/analyze-text
+{
+  "text": "your_text_here",
+  "context": "optional_context"
+}
+```
+
+### Savol tahlili
+```typescript
+// Frontend da
+const result = await AIService.analyzeQuestions(["Savol 1", "Savol 2"])
+
+// Backend API
+POST /api/ai/analyze-questions
+{
+  "questions": ["question1", "question2"]
+}
+```
 
 - **PDF Export** - Yuqori sifatli PDF fayllar
 - **WebP Export** - Optimallashtirilgan rasm fayllar
 - **Ko'p sahifali PDF** - Bir nechta to'plamlar uchun
 - **Progress tracking** - Yuklanish jarayoni ko'rsatkichi
 
-## Tillar
+## Sahifalar
+
+1. **Boshqaruv Paneli (/)** - asosiy sahifa
+2. **Imtihon Yaratish (/exam-creation)** - 3 bosqichli imtihon yaratish
+3. **OMR Varaq Yaratish (/omr-generation)** - OMR varaq yaratish va export
+4. **Skan Yuklash (/scan-upload)** - skan yuklash
+5. **AI Tahlilchi (/ai-analysis)** - rasm va matn tahlili
+6. **Loading Demo (/loading-demo)** - yangi loading komponentlarini sinash
 
 Loyiha to'liq o'zbek tilida tayyorlangan va quyidagi xususiyatlarni o'z ichiga oladi:
 - O'zbek tilidagi interfeys

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ScanLine, Check, X, AlertCircle, User, FileText, Camera } from 'lucide-react'
+import { Check, X, AlertCircle, User, FileText, Camera, Brain, Zap } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import LoadingButton from '@/components/ui/LoadingButton'
+import ProgressBar from '@/components/ui/ProgressBar'
 import CameraScanner from '@/components/CameraScanner'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiService } from '@/services/api'
+import { AIService, OMRAnalysisResult } from '@/services/aiService'
 import { Exam } from '@/types'
-import { processOMRImage, validateOMRSheet, calculateScore, OMRResult } from '@/utils/omrProcessor'
+import { validateOMRSheet } from '@/utils/omrProcessor'
 
 interface ScanResult {
   studentId: string
@@ -23,6 +26,14 @@ interface ScanResult {
   confidence: number
   processingTime: number
   scannedImage?: string
+  aiAnalysis?: OMRAnalysisResult
+  detailedResults?: Array<{
+    questionNumber: number
+    studentAnswer: string
+    correctAnswer: string
+    isCorrect: boolean
+    score: number
+  }>
 }
 
 const ExamScanner: React.FC = () => {
@@ -31,7 +42,8 @@ const ExamScanner: React.FC = () => {
   const { user } = useAuth()
   const [exam, setExam] = useState<Exam | null>(null)
   const [loading, setLoading] = useState(true)
-  const [scanning, setScanning] = useState(false)
+  const [aiAnalyzing, setAiAnalyzing] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState(0)
   const [error, setError] = useState('')
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [showCamera, setShowCamera] = useState(false)
@@ -99,65 +111,82 @@ const ExamScanner: React.FC = () => {
         return
       }
     
-      await processScannedImage(imageData)
+      // Avtomatik AI tahlil qilish
+      await processWithAI(imageData)
     } catch (error) {
       console.error('Validation error:', error)
       setError('Rasm validatsiyasida xatolik')
     }
   }
 
-  const processScannedImage = async (imageData: string) => {
-    if (!exam) {
-      setError('Imtihon ma\'lumotlari topilmadi')
+  const processWithAI = async (imageData: string) => {
+    if (!exam || !exam.answerKey || exam.answerKey.length === 0) {
+      setError('Imtihon kalitlari belgilanmagan')
       return
     }
 
-    console.log('=== IMTIHON TEKSHIRISH BOSHLANDI ===')
+    console.log('=== AI TAHLIL BOSHLANDI ===')
     console.log('Exam data:', exam)
-    console.log('Total questions:', getTotalQuestions(exam))
     console.log('Answer key:', exam.answerKey)
     console.log('Scoring:', exam.scoring)
 
-    setScanning(true)
+    setAiAnalyzing(true)
+    setAnalysisProgress(0)
     setError('')
     
     try {
-      const omrResult: OMRResult = await processOMRImage(imageData, {
-        totalQuestions: getTotalQuestions(exam),
-        answerOptions: ['A', 'B', 'C', 'D', 'E']
-      })
+      // Progress simulation
+      const progressInterval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return 90
+          }
+          return prev + 10
+        })
+      }, 500)
+
+      const startTime = Date.now()
       
-      console.log('OMR Result:', omrResult)
-      
-      const scoreResult = calculateScore(
-        omrResult.answers,
-        exam.answerKey || [],
+      // AI tahlil
+      const aiResult = await AIService.analyzeOMRSheet(
+        imageData,
+        exam.answerKey,
         exam.scoring || { correct: 1, wrong: 0, blank: 0 }
       )
       
-      console.log('Score Result:', scoreResult)
+      clearInterval(progressInterval)
+      setAnalysisProgress(100)
       
+      const processingTime = Date.now() - startTime
+      
+      console.log('AI Result:', aiResult)
+      
+      // Natijani formatlash
       const result: ScanResult = {
-        studentId: omrResult.studentId,
-        studentName: `O'quvchi ${omrResult.studentId}`,
-        answers: omrResult.answers,
-        score: scoreResult.score,
-        totalQuestions: getTotalQuestions(exam),
-        correctAnswers: scoreResult.correctCount,
-        wrongAnswers: scoreResult.wrongCount,
-        blankAnswers: scoreResult.blankCount,
-        confidence: omrResult.confidence,
-        processingTime: omrResult.processingTime,
-        scannedImage: imageData
+        studentId: 'AI-SCAN-' + Date.now(),
+        studentName: 'AI Tahlil',
+        answers: {}, // AI dan kelgan javoblarni formatlash
+        score: aiResult.totalScore,
+        totalQuestions: aiResult.extractedAnswers.length,
+        correctAnswers: aiResult.correctAnswers,
+        wrongAnswers: aiResult.wrongAnswers,
+        blankAnswers: aiResult.blankAnswers,
+        confidence: aiResult.confidence,
+        processingTime,
+        scannedImage: imageData,
+        aiAnalysis: aiResult,
+        detailedResults: aiResult.detailedResults
       }
       
-      console.log('Final Result:', result)
+      console.log('Final AI Result:', result)
       setScanResult(result)
     } catch (error: any) {
-      console.error('OMR processing error:', error)
-      setError('OMR varaqni qayta ishlashda xatolik yuz berdi')
+      console.error('AI tahlil xatosi:', error)
+      setError('AI tahlil qilishda xatolik yuz berdi: ' + error.message)
     } finally {
-      setScanning(false)
+      setAiAnalyzing(false)
+      setAnalysisProgress(0)
     }
   }
 
@@ -178,6 +207,7 @@ const ExamScanner: React.FC = () => {
     setScannedImage(null)
     setValidationResult(null)
     setError('')
+    setAnalysisProgress(0)
   }
 
   if (loading) {
@@ -247,10 +277,15 @@ const ExamScanner: React.FC = () => {
           <Card className="mb-6">
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <Check size={48} className="text-green-600" />
+                <div className="relative">
+                  <Brain size={48} className="text-purple-600" />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <Check size={16} className="text-white" />
+                  </div>
+                </div>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                Skanerlash yakunlandi
+                AI Tahlil Yakunlandi
               </h1>
               <div className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Ishonch darajasi: {Math.round(scanResult.confidence * 100)}% | 
@@ -258,25 +293,85 @@ const ExamScanner: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <div className="text-center">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="text-3xl font-bold text-blue-600">{scanResult.score}</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">Ball</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Jami Ball</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className="text-3xl font-bold text-green-600">{scanResult.correctAnswers}</div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">To'g'ri</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
                   <div className="text-3xl font-bold text-red-600">{scanResult.wrongAnswers}</div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">Noto'g'ri</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                   <div className="text-3xl font-bold text-slate-600">{scanResult.blankAnswers}</div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">Bo'sh</div>
                 </div>
               </div>
+
+              {/* Foiz ko'rsatkichi */}
+              <div className="mt-6">
+                <div className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                  Natija: {Math.round((scanResult.correctAnswers / scanResult.totalQuestions) * 100)}%
+                </div>
+                <ProgressBar 
+                  value={(scanResult.correctAnswers / scanResult.totalQuestions) * 100}
+                  variant={
+                    (scanResult.correctAnswers / scanResult.totalQuestions) >= 0.8 ? 'success' :
+                    (scanResult.correctAnswers / scanResult.totalQuestions) >= 0.6 ? 'warning' : 'error'
+                  }
+                  size="lg"
+                  showLabel={false}
+                />
+              </div>
             </div>
           </Card>
+
+          {/* AI tahlil tafsilotlari */}
+          {scanResult.detailedResults && scanResult.detailedResults.length > 0 && (
+            <Card className="mb-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <Brain size={20} className="text-purple-600" />
+                AI Tahlil Tafsilotlari
+              </h3>
+              <div className="max-h-64 overflow-y-auto">
+                <div className="grid gap-2">
+                  {scanResult.detailedResults.slice(0, 20).map((result, index) => (
+                    <div 
+                      key={index}
+                      className={`flex items-center justify-between p-2 rounded text-sm ${
+                        result.isCorrect 
+                          ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
+                          : result.studentAnswer === ''
+                          ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                          : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200'
+                      }`}
+                    >
+                      <span className="font-medium">
+                        {result.questionNumber}-savol:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {result.studentAnswer || 'Bo\'sh'} 
+                          {result.correctAnswer && ` → ${result.correctAnswer}`}
+                        </span>
+                        <span className="font-bold">
+                          {result.score > 0 ? '+' : ''}{result.score}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {scanResult.detailedResults.length > 20 && (
+                    <div className="text-center text-sm text-slate-500 dark:text-slate-400 py-2">
+                      ... va yana {scanResult.detailedResults.length - 20} ta savol
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          )}
 
           <Card className="mb-6">
             <div className="flex items-center gap-3">
@@ -325,7 +420,7 @@ const ExamScanner: React.FC = () => {
       <CameraScanner
         onCapture={handleCameraCapture}
         onClose={() => setShowCamera(false)}
-        isScanning={scanning}
+        isScanning={aiAnalyzing}
       />
     )
   }
@@ -435,19 +530,30 @@ const ExamScanner: React.FC = () => {
           </Card>
         )}
 
-        {scanning && (
+        {aiAnalyzing && (
           <Card className="mb-6">
             <div className="flex items-center gap-4 p-4">
               <div className="flex-shrink-0">
-                <LoadingSpinner />
+                <div className="relative">
+                  <Brain size={32} className="text-purple-600 animate-pulse" />
+                  <Zap size={16} className="absolute -top-1 -right-1 text-yellow-500" />
+                </div>
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="font-semibold text-slate-900 dark:text-white">
-                  OMR varaq qayta ishlanmoqda...
+                  AI tomonidan tahlil qilinmoqda...
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Bu bir necha daqiqa davom etishi mumkin
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                  Sun'iy intellekt OMR varaqni tahlil qilmoqda va javoblarni aniqlayapti
                 </p>
+                <ProgressBar 
+                  value={analysisProgress} 
+                  variant="default"
+                  size="sm"
+                  showLabel={true}
+                  label="AI Tahlil"
+                  animated={true}
+                />
               </div>
             </div>
           </Card>
@@ -455,35 +561,40 @@ const ExamScanner: React.FC = () => {
 
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button
+            <LoadingButton
               onClick={() => setShowCamera(true)}
-              disabled={scanning}
+              loading={aiAnalyzing}
+              loadingText="Tahlil qilinmoqda..."
               className="flex items-center justify-center gap-2"
+              icon={<Camera size={20} />}
             >
-              <Camera size={20} />
               Kamera bilan skanerlash
-            </Button>
+            </LoadingButton>
             
-            {scannedImage && (
-              <Button
-                onClick={() => processScannedImage(scannedImage)}
-                disabled={scanning}
+            {scannedImage && !scanResult && (
+              <LoadingButton
+                onClick={() => processWithAI(scannedImage)}
+                loading={aiAnalyzing}
+                loadingText="AI tahlil qilinmoqda..."
                 variant="outline"
+                icon={<Brain size={20} />}
               >
-                {scanning ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    Tekshirilmoqda...
-                  </>
-                ) : (
-                  <>
-                    <ScanLine size={20} />
-                    Javoblarni tekshirish
-                  </>
-                )}
-              </Button>
+                AI bilan qayta tahlil
+              </LoadingButton>
             )}
           </div>
+
+          {!exam?.answerKey || exam.answerKey.length === 0 ? (
+            <div className="text-center">
+              <Button
+                onClick={() => navigate(`/exam-keys/${id}`)}
+                variant="outline"
+                className="text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+              >
+                Avval kalitlarni belgilang
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

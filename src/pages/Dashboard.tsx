@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { ExamStats, Exam } from '@/types'
+import SkeletonLoader from '@/components/ui/SkeletonLoader'
+import { Exam } from '@/types'
 import { apiService } from '@/services/api'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -80,6 +80,12 @@ const Dashboard: React.FC = () => {
       icon: Plus,
       color: 'bg-primary/10 text-primary',
       onClick: () => navigate('/exam-creation')
+    },
+    {
+      title: 'Loading Demo',
+      icon: Clock,
+      color: 'bg-blue-500/10 text-blue-500',
+      onClick: () => navigate('/loading-demo')
     }
   ]
 
@@ -122,8 +128,8 @@ const Dashboard: React.FC = () => {
         </div>
         
         {loading ? (
-          <div className="flex justify-center py-8">
-            <LoadingSpinner />
+          <div className="space-y-4">
+            <SkeletonLoader variant="list" lines={3} />
           </div>
         ) : exams.length === 0 ? (
           <Card className="flex flex-col items-center justify-center py-12 text-center">

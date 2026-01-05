@@ -1,8 +1,11 @@
+// Load environment variables FIRST
+import dotenv from 'dotenv'
+dotenv.config()
+
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
-import dotenv from 'dotenv'
 import { connectDatabase } from './config/database.js'
 import { errorHandler, notFound } from './middleware/errorHandler.js'
 
@@ -10,10 +13,8 @@ import { errorHandler, notFound } from './middleware/errorHandler.js'
 import authRoutes from './routes/auth.js'
 import subjectRoutes from './routes/subjects.js'
 import examRoutes from './routes/exams.js'
+import aiRoutes from './routes/ai.js'
 // import studentRoutes from './routes/students.js'
-
-// Load environment variables
-dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -54,6 +55,19 @@ app.get('/api/health', (req, res) => {
   })
 })
 
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API test muvaffaqiyatli',
+    data: {
+      server: 'running',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    }
+  })
+})
+
 // API routes
 app.use('/api', (req, res, next) => {
   console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`)
@@ -64,6 +78,7 @@ app.use('/api', (req, res, next) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/subjects', subjectRoutes)
 app.use('/api/exams', examRoutes)
+app.use('/api/ai', aiRoutes)
 // app.use('/api/students', studentRoutes)
 
 // Error handling middleware

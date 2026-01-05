@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://192.168.233.226:5000/api'
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api'
 
 interface ApiResponse<T = any> {
   success: boolean
@@ -24,7 +24,7 @@ class ApiService {
     localStorage.removeItem('token')
   }
 
-  private async request<T>(
+  async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
@@ -57,6 +57,15 @@ class ApiService {
       console.error('API request error:', error)
       throw error
     }
+  }
+
+  // Test methods
+  async testConnection() {
+    return this.request<{ server: string; database: string; timestamp: string }>('/test')
+  }
+
+  async healthCheck() {
+    return this.request<{ message: string; timestamp: string; environment: string }>('/health')
   }
 
   // Auth methods

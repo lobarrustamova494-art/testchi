@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Button from '@/components/ui/Button'
+import ProgressBar from '@/components/ui/ProgressBar'
 import { UploadFile } from '@/types'
 
 const ScanUpload: React.FC = () => {
@@ -195,11 +196,15 @@ const ScanUpload: React.FC = () => {
                 }`}
               >
                 {/* Progress bar for uploading files */}
-                {file.status === 'uploading' && (
-                  <div 
-                    className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-300"
-                    style={{ width: `${file.progress}%` }}
-                  />
+                {file.status === 'uploading' && file.progress && (
+                  <div className="absolute bottom-0 left-0 right-0">
+                    <ProgressBar 
+                      value={file.progress} 
+                      size="sm" 
+                      variant="default"
+                      className="rounded-none"
+                    />
+                  </div>
                 )}
 
                 {/* Thumbnail */}

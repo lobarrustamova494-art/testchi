@@ -4,7 +4,9 @@ import { Calendar, Clock, FileText, Users, Key, ScanLine, Download, ChevronDown 
 import Header from '@/components/layout/Header'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import LoadingButton from '@/components/ui/LoadingButton'
+import ProgressBar from '@/components/ui/ProgressBar'
+import SkeletonLoader from '@/components/ui/SkeletonLoader'
 import OMRSheet from '@/components/OMRSheet'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiService } from '@/services/api'
@@ -154,10 +156,20 @@ const ExamDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Imtihon ma'lumotlari yuklanmoqda...</p>
+      <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <Header user={{
+          id: user?.id || '1',
+          name: user?.name || 'Guest',
+          phone: user?.phone,
+          avatar: user?.avatar || '',
+          isOnline: true
+        }} />
+        <div className="container mx-auto px-4 py-6">
+          <div className="space-y-6">
+            <SkeletonLoader variant="rectangular" height="60px" />
+            <SkeletonLoader variant="card" />
+            <SkeletonLoader variant="text" lines={4} />
+          </div>
         </div>
       </div>
     )
@@ -371,34 +383,35 @@ const ExamDetail: React.FC = () => {
           </Button>
 
           <div className="relative">
-            <Button
+            <LoadingButton
               onClick={(e) => {
                 e.stopPropagation()
                 setShowDownloadOptions(!showDownloadOptions)
               }}
-              disabled={downloading}
+              loading={downloading}
+              loadingText="Yuklanmoqda..."
               className="flex items-center justify-center gap-3 h-16 w-full"
               variant="outline"
+              icon={<Download size={24} />}
             >
-              {downloading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  <div className="text-left">
-                    <div className="font-semibold">Yuklanmoqda...</div>
-                    <div className="text-xs opacity-75">{downloadProgress}%</div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Download size={24} />
-                  <div className="text-left flex-1">
-                    <div className="font-semibold">PDF yuklab olish</div>
-                    <div className="text-xs opacity-75">Imtihon hujjatlari</div>
-                  </div>
-                  <ChevronDown size={16} className={`transition-transform ${showDownloadOptions ? 'rotate-180' : ''}`} />
-                </>
-              )}
-            </Button>
+              <div className="text-left">
+                <div className="font-semibold">Yuklab olish</div>
+                <div className="text-xs opacity-75">PDF yoki OMR varaq</div>
+              </div>
+              <ChevronDown size={16} className={`transition-transform ${showDownloadOptions ? 'rotate-180' : ''}`} />
+            </LoadingButton>
+
+            {downloading && downloadProgress > 0 && (
+              <div className="mt-2">
+                <ProgressBar 
+                  value={downloadProgress} 
+                  size="sm" 
+                  variant="default"
+                  showLabel={true}
+                  label="Yuklanish jarayoni"
+                />
+              </div>
+            )}
 
             {showDownloadOptions && (
               <div 

@@ -10,6 +10,7 @@ import ExamKeys from './pages/ExamKeys'
 import ExamScanner from './pages/ExamScanner'
 import OMRGeneration from './pages/OMRGeneration'
 import ScanUpload from './pages/ScanUpload'
+import LoadingDemo from './pages/LoadingDemo'
 
 function App() {
   return (
@@ -55,6 +56,11 @@ function App() {
             <Route path="/scan-upload" element={
               <ProtectedRoute>
                 <ScanUpload />
+              </ProtectedRoute>
+            } />
+            <Route path="/loading-demo" element={
+              <ProtectedRoute>
+                <LoadingDemo />
               </ProtectedRoute>
             } />
             
