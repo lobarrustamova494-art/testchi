@@ -5,7 +5,7 @@ import LoadingSpinner from './LoadingSpinner'
 interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean
   loadingText?: string
-  variant?: 'default' | 'outline' | 'ghost' | 'destructive'
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   children: React.ReactNode
   icon?: React.ReactNode
@@ -15,7 +15,7 @@ interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const LoadingButton: React.FC<LoadingButtonProps> = ({
   loading = false,
   loadingText,
-  variant = 'default',
+  variant = 'primary',
   size = 'md',
   children,
   icon,

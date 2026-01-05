@@ -7,6 +7,7 @@ interface LoadingSpinnerProps {
   className?: string
   text?: string
   fullScreen?: boolean
+  centered?: boolean
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
@@ -15,7 +16,8 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   color = 'primary',
   className = '',
   text,
-  fullScreen = false
+  fullScreen = false,
+  centered = false
 }) => {
   const sizeClasses = {
     xs: 'w-3 h-3',
@@ -96,6 +98,14 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   if (fullScreen) {
     return (
       <div className="fixed inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50">
+        {content}
+      </div>
+    )
+  }
+
+  if (centered) {
+    return (
+      <div className="flex items-center justify-center w-full h-full min-h-[200px]">
         {content}
       </div>
     )
