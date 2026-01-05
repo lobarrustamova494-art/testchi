@@ -9,7 +9,7 @@ import CameraScanner from '@/components/CameraScanner'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiService } from '@/services/api'
 import { Exam } from '@/types'
-import { processOMRImage, validateOMRSheet, calculateScore, OMRResult } from '@/utils/omrProcessor'
+import { processOMRImageLegacy, validateOMRSheet, calculateScore } from '@/utils/omrProcessor'
 
 interface ScanResult {
   studentId: string
@@ -125,7 +125,7 @@ const ExamScanner: React.FC = () => {
     setError('')
     
     try {
-      const omrResult: OMRResult = await processOMRImage(imageData, {
+      const omrResult = await processOMRImageLegacy(imageData, {
         totalQuestions: getTotalQuestions(exam),
         answerOptions: ['A', 'B', 'C', 'D', 'E']
       }, exam.answerKey)
