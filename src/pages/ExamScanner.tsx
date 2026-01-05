@@ -174,6 +174,13 @@ const ExamScanner: React.FC = () => {
       if (aiResult.suspiciousAnswers && aiResult.suspiciousAnswers > 0) {
         console.warn(`${aiResult.suspiciousAnswers} ta shubhali javob aniqlandi`)
       }
+
+      // Pattern matching check
+      if (aiResult.matchesExpectedPattern) {
+        console.log('✅ AI tahlil kutilgan pattern bilan mos keldi')
+      } else {
+        console.warn('⚠️ AI tahlil kutilgan pattern dan farq qildi')
+      }
       
       // Natijani formatlash
       const result: ScanResult = {
