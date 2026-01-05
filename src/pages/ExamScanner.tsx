@@ -184,7 +184,7 @@ const ExamScanner: React.FC = () => {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner size="lg" />
+          <LoadingSpinner size="lg" centered />
           <p className="mt-4 text-slate-600 dark:text-slate-400">Imtihon yuklanmoqda...</p>
         </div>
       </div>

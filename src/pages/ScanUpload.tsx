@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
-  ArrowLeft, 
   Upload, 
   Camera, 
   Image, 
@@ -10,9 +9,7 @@ import {
   RefreshCw, 
   ArrowUp,
   FileText,
-  AlertCircle,
-  CheckCircle,
-  Loader
+  AlertCircle
 } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Button from '@/components/ui/Button'
@@ -69,20 +66,6 @@ const ScanUpload: React.FC = () => {
     // Here you would implement the actual upload logic
   }
 
-  const getStatusIcon = (file: UploadFile) => {
-    switch (file.status) {
-      case 'ready':
-        return <CheckCircle size={18} className="text-primary" />
-      case 'uploading':
-        return <Loader size={18} className="text-primary animate-spin" />
-      case 'error':
-        return <AlertCircle size={18} className="text-red-500" />
-      case 'completed':
-        return <CheckCircle size={18} className="text-green-500" />
-      default:
-        return <FileText size={18} className="text-slate-400" />
-    }
-  }
 
   const getStatusText = (file: UploadFile) => {
     switch (file.status) {

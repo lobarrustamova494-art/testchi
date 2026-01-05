@@ -16,7 +16,7 @@ export interface ProcessingOptions {
 
 // Mock OMR processing function
 export const processOMRImage = async (
-  imageData: string, 
+  _imageData: string, 
   options: ProcessingOptions
 ): Promise<OMRResult> => {
   // Simulate processing time
@@ -98,7 +98,7 @@ export const preprocessImage = (imageData: string): Promise<string> => {
 }
 
 // Validate OMR sheet structure
-export const validateOMRSheet = (imageData: string): Promise<{
+export const validateOMRSheet = (_imageData: string): Promise<{
   isValid: boolean
   issues: string[]
   suggestions: string[]

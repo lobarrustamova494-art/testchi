@@ -5,7 +5,7 @@ import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { ExamStats, Exam } from '@/types'
+import { Exam } from '@/types'
 import { apiService } from '@/services/api'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
         
         {loading ? (
           <div className="flex justify-center py-8">
-            <LoadingSpinner />
+            <LoadingSpinner centered />
           </div>
         ) : exams.length === 0 ? (
           <Card className="flex flex-col items-center justify-center py-12 text-center">
