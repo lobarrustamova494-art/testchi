@@ -208,77 +208,72 @@ export class AIService {
     try {
       const prompt = `You are a computer vision AI specialized in OMR (Optical Mark Recognition) analysis.
 
-Task: Analyze this OMR answer sheet image and detect filled circles for each question.
+Task: Analyze this OMR answer sheet image and detect filled circles for each question with EXACT PRECISION.
 
-CRITICAL: EXACT POSITION-TO-LETTER MAPPING
-Each question row has EXACTLY 5 circles arranged horizontally from LEFT to RIGHT.
-You MUST identify which position has the letter hidden to determine the answer.
+CRITICAL: VISUAL ANALYSIS METHOD
+Look at the image exactly like a human would:
+1. Find each question row (numbered 1, 2, 3, etc.)
+2. In each row, look at the 5 circles from LEFT to RIGHT
+3. Identify which circles are FILLED (dark/black) vs EMPTY (white with visible letters)
 
-STRICT POSITION MAPPING (LEFT TO RIGHT):
-Position 1 (LEFTMOST circle) = Letter "A"
-Position 2 (Second from left) = Letter "B"  
-Position 3 (MIDDLE circle) = Letter "C"
-Position 4 (Second from right) = Letter "D"
-Position 5 (RIGHTMOST circle) = Letter "E"
+EXACT VISUAL IDENTIFICATION:
+- FILLED CIRCLE = Completely dark/black circle (letter inside is hidden)
+- EMPTY CIRCLE = White circle with clearly visible letter (A, B, C, D, E)
 
-VISUAL EXAMPLE:
-Question 1:  [A] [B] [C] [D] [E]  ← Each bracket represents a circle
-             ↑   ↑   ↑   ↑   ↑
-            Pos1 Pos2 Pos3 Pos4 Pos5
+POSITION MAPPING (LEFT TO RIGHT):
+Position 1 (LEFTMOST) = A
+Position 2 = B
+Position 3 (MIDDLE) = C  
+Position 4 = D
+Position 5 (RIGHTMOST) = E
 
-DETECTION ALGORITHM:
-1. Find each question row (horizontal line of 5 circles)
-2. For each row, examine circles from LEFT to RIGHT in this exact order:
-   - 1st circle (leftmost) → If letter "A" is NOT VISIBLE → Answer is "A"
-   - 2nd circle → If letter "B" is NOT VISIBLE → Answer is "B"
-   - 3rd circle (middle) → If letter "C" is NOT VISIBLE → Answer is "C"
-   - 4th circle → If letter "D" is NOT VISIBLE → Answer is "D"
-   - 5th circle (rightmost) → If letter "E" is NOT VISIBLE → Answer is "E"
+STEP-BY-STEP ANALYSIS FOR EACH QUESTION:
+1. Look at question row
+2. Scan circles from LEFT to RIGHT
+3. Identify which circle is FILLED (dark/black)
+4. Map that position to letter:
+   - If 1st circle (leftmost) is filled → "A"
+   - If 2nd circle is filled → "B"
+   - If 3rd circle (middle) is filled → "C"
+   - If 4th circle is filled → "D"
+   - If 5th circle (rightmost) is filled → "E"
+   - If NO circles are filled → "BLANK"
 
-LETTER VISIBILITY RULES:
-✓ FILLED CIRCLE = Letter inside is COMPLETELY HIDDEN by dark marking
-✓ EMPTY CIRCLE = Letter inside is CLEARLY VISIBLE and readable
+EXAMPLE ANALYSIS:
+Question 1: [●] [○] [○] [○] [○]  → Answer: "A" (1st position filled)
+Question 2: [○] [●] [○] [○] [○]  → Answer: "B" (2nd position filled)
+Question 3: [○] [○] [○] [○] [○]  → Answer: "BLANK" (no position filled)
 
-STEP-BY-STEP ANALYSIS:
-For each question:
-1. Locate the 5 circles in the row
-2. Number them 1, 2, 3, 4, 5 from LEFT to RIGHT
-3. Check each circle: "Can I clearly see the letter inside?"
-4. If letter is hidden in position 1 → Answer is "A"
-5. If letter is hidden in position 2 → Answer is "B"
-6. If letter is hidden in position 3 → Answer is "C"
-7. If letter is hidden in position 4 → Answer is "D"
-8. If letter is hidden in position 5 → Answer is "E"
-9. If ALL letters are visible → Answer is "BLANK"
+VISUAL DETECTION RULES:
+✓ Dark/black filled circle = FILLED
+✓ White circle with visible letter = EMPTY
+✓ Only count completely filled circles
+✓ Ignore partial marks or light shading
 
-IMPORTANT REMINDERS:
-- Always count positions from LEFT to RIGHT: 1=A, 2=B, 3=C, 4=D, 5=E
-- A filled circle means the letter inside is NOT VISIBLE due to marking
-- An empty circle means the letter inside is CLEARLY VISIBLE
-- Only ONE circle should be filled per question (student's answer)
-- If no circles are filled, return "BLANK"
+SCANNING INSTRUCTIONS:
+1. Start from top question (Question 1)
+2. For each question, look at 5 circles from LEFT to RIGHT
+3. Identify the FILLED (dark) circle
+4. Determine its position (1st, 2nd, 3rd, 4th, or 5th)
+5. Map position to letter (1=A, 2=B, 3=C, 4=D, 5=E)
+6. Move to next question
 
-SCANNING ORDER:
-1. Scan image from TOP to BOTTOM (question by question)
-2. For each question, scan circles from LEFT to RIGHT
-3. Identify which position (1-5) has the hidden letter
-4. Map that position to the corresponding letter (A-E)
+ACCURACY REQUIREMENTS:
+- Be as precise as a human examining the image
+- Look for clear visual differences between filled and empty circles
+- Count positions exactly from LEFT to RIGHT
+- Map positions to letters correctly
 
 OUTPUT FORMAT (JSON only):
 {
   "answers": ["A", "B", "C", "BLANK", "D", ...],
   "confidence": 0.95,
   "imageQuality": 0.9,
-  "totalQuestions": 50,
+  "totalQuestions": 10,
   "notes": "Detected X marked answers out of Y questions"
 }
 
-CRITICAL SUCCESS FACTORS:
-- Count positions correctly: LEFTMOST=1=A, RIGHTMOST=5=E
-- Look for HIDDEN letters, not just dark circles
-- Map position to letter accurately: Position 1→A, Position 2→B, Position 3→C, Position 4→D, Position 5→E
-- If you see a letter clearly, that circle is NOT filled
-- If you cannot see a letter (it's covered by marking), that circle IS filled`
+CRITICAL: Analyze each circle visually like a human would - look for dark filled circles vs white empty circles, then map the position to the correct letter.`
 
       const completion = await groq.chat.completions.create({
         messages: [
