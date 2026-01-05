@@ -1,6 +1,47 @@
-# Stitch Admin Boshqaruv Paneli
+# Stitch OMR - Imtihon Boshqaruv Tizimi
 
-OMR (Optical Mark Recognition) admin boshqaruv paneli loyihasi TypeScript va React yordamida qurilgan.
+OMR (Optical Mark Recognition) imtihon boshqaruv tizimi TypeScript va React yordamida qurilgan.
+
+## Deploy
+
+### Render.com da deploy qilish
+
+1. **GitHub repository ni Render.com ga ulang**
+2. **Frontend uchun Static Site yarating:**
+   - Build Command: `npm install && npm run build`
+   - Publish Directory: `dist`
+   - Environment Variables:
+     - `VITE_API_URL`: Backend URL manzili
+
+3. **Backend uchun Web Service yarating:**
+   - Build Command: `cd server && npm install && npm run build`
+   - Start Command: `cd server && npm start`
+   - Environment Variables:
+     - `NODE_ENV`: production
+     - `PORT`: 10000
+     - `MONGODB_URI`: MongoDB connection string
+     - `JWT_SECRET`: JWT secret key
+     - `JWT_EXPIRES_IN`: 7d
+     - `FRONTEND_URL`: Frontend URL manzili
+
+4. **MongoDB Atlas database yarating va connection string ni qo'shing**
+
+## Environment Variables
+
+### Frontend (.env)
+```env
+VITE_API_URL=https://your-backend-url.onrender.com/api
+```
+
+### Backend (server/.env)
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/omr_system
+PORT=10000
+NODE_ENV=production
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=https://your-frontend-url.onrender.com
+```
 
 ## Xususiyatlar
 
