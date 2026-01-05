@@ -128,13 +128,8 @@ const Dashboard: React.FC = () => {
         </div>
         
         {loading ? (
-<<<<<<< HEAD
           <div className="space-y-4">
             <SkeletonLoader variant="list" lines={3} />
-=======
-          <div className="flex justify-center py-8">
-            <LoadingSpinner centered />
->>>>>>> 0984318e3c45453ab06ad6ea66f6916156d3d6f7
           </div>
         ) : exams.length === 0 ? (
           <Card className="flex flex-col items-center justify-center py-12 text-center">
