@@ -133,7 +133,7 @@ const CameraScanner: React.FC<CameraScannerProps> = ({ onCapture, onClose, isSca
                 <div className="w-96 h-64 border-2 border-white border-dashed rounded-lg bg-black/20">
                   <div className="absolute -top-8 left-0 right-0 text-center">
                     <span className="text-white text-sm bg-black/50 px-3 py-1 rounded-full">
-                      OMR varaqni bu doira ichiga joylashtiring
+                      Test varaqni bu doira ichiga joylashtiring
                     </span>
                   </div>
                 </div>

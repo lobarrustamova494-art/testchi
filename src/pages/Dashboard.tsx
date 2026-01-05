@@ -80,12 +80,6 @@ const Dashboard: React.FC = () => {
       icon: Plus,
       color: 'bg-primary/10 text-primary',
       onClick: () => navigate('/exam-creation')
-    },
-    {
-      title: 'Loading Demo',
-      icon: Clock,
-      color: 'bg-blue-500/10 text-blue-500',
-      onClick: () => navigate('/loading-demo')
     }
   ]
 
