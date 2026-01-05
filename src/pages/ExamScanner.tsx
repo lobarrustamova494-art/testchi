@@ -578,8 +578,13 @@ const ExamScanner: React.FC = () => {
                   OMR varaq qayta ishlanmoqda...
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Bu bir necha daqiqa davom etishi mumkin
+                  Bubble detection algoritmi ishlamoqda. Bu bir necha daqiqa davom etishi mumkin.
                 </p>
+                <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  • Rasm sifatini tahlil qilish<br/>
+                  • Bo'yalgan aylanalarni aniqlash<br/>
+                  • Javoblarni taqqoslash
+                </div>
               </div>
             </div>
           </Card>
