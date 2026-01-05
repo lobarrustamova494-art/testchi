@@ -158,7 +158,7 @@ const convertToGrayscale = (imageData: ImageData): ImageData => {
 
 /**
  * Apply adaptive thresholding for uneven lighting
- * Uses local mean with offset for better bubble detection
+ * IMPROVED VERSION - better for bubble detection
  */
 const applyAdaptiveThreshold = (imageData: ImageData): ImageData => {
   const data = imageData.data
@@ -166,8 +166,10 @@ const applyAdaptiveThreshold = (imageData: ImageData): ImageData => {
   const height = imageData.height
   const newData = new Uint8ClampedArray(data)
   
-  const blockSize = 15 // Local neighborhood size
-  const C = 10 // Constant subtracted from mean
+  const blockSize = Math.max(11, Math.min(31, Math.floor(Math.min(width, height) / 50))) // Dynamic block size
+  const C = 15 // Increased constant for better bubble detection
+  
+  console.log(`Adaptive threshold: blockSize=${blockSize}, C=${C}`)
   
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -193,8 +195,9 @@ const applyAdaptiveThreshold = (imageData: ImageData): ImageData => {
       const localMean = sum / count
       const threshold = localMean - C
       
-      // Apply threshold
-      const pixelValue = data[idx] < threshold ? 0 : 255
+      // Apply threshold - INVERTED for better bubble detection
+      // Dark areas (filled bubbles) become white, light areas become black
+      const pixelValue = data[idx] < threshold ? 255 : 0
       newData[idx] = pixelValue
       newData[idx + 1] = pixelValue
       newData[idx + 2] = pixelValue
@@ -278,6 +281,7 @@ const removeMorphologicalNoise = (imageData: ImageData): ImageData => {
 /**
  * STEP 2: Template-based bubble detection
  * Uses fixed coordinates and filledPixelRatio calculation
+ * IMPROVED with better template positioning
  */
 const detectBubblesWithTemplate = async (
   imageData: ImageData, 
@@ -285,17 +289,31 @@ const detectBubblesWithTemplate = async (
 ): Promise<{ [questionNumber: number]: { [option: string]: BubbleDetectionResult } }> => {
   
   console.log('=== TEMPLATE-BASED BUBBLE DETECTION ===')
+  console.log('Image dimensions:', imageData.width, 'x', imageData.height)
   
   const results: { [questionNumber: number]: { [option: string]: BubbleDetectionResult } } = {}
   
-  // OMR sheet template dimensions (normalized coordinates)
+  // IMPROVED OMR sheet template - more realistic dimensions
   const sheetTemplate = {
     questionsPerRow: 5,
     answersPerQuestion: options.answerOptions.length,
-    bubbleRadius: 12, // pixels
-    questionSpacing: { x: 120, y: 80 },
-    startPosition: { x: 50, y: 100 }
+    bubbleRadius: Math.min(imageData.width, imageData.height) / 80, // Dynamic radius based on image size
+    questionSpacing: { 
+      x: imageData.width / 6,  // More space between questions
+      y: imageData.height / 15 // More space between rows
+    },
+    startPosition: { 
+      x: imageData.width * 0.1,   // 10% from left edge
+      y: imageData.height * 0.2   // 20% from top edge
+    },
+    optionSpacing: imageData.width / 25 // Space between A, B, C, D, E
   }
+  
+  console.log('Template settings:')
+  console.log('- Bubble radius:', sheetTemplate.bubbleRadius.toFixed(1))
+  console.log('- Question spacing:', sheetTemplate.questionSpacing.x.toFixed(0), 'x', sheetTemplate.questionSpacing.y.toFixed(0))
+  console.log('- Start position:', sheetTemplate.startPosition.x.toFixed(0), ',', sheetTemplate.startPosition.y.toFixed(0))
+  console.log('- Option spacing:', sheetTemplate.optionSpacing.toFixed(0))
   
   for (let questionNumber = 1; questionNumber <= options.totalQuestions; questionNumber++) {
     results[questionNumber] = {}
@@ -306,14 +324,16 @@ const detectBubblesWithTemplate = async (
     const questionX = sheetTemplate.startPosition.x + col * sheetTemplate.questionSpacing.x
     const questionY = sheetTemplate.startPosition.y + row * sheetTemplate.questionSpacing.y
     
-    console.log(`Question ${questionNumber}: Position (${questionX}, ${questionY})`)
+    console.log(`\nQuestion ${questionNumber} (row=${row}, col=${col}): Position (${questionX.toFixed(0)}, ${questionY.toFixed(0)})`)
     
     // Detect each answer option bubble
     for (let optionIndex = 0; optionIndex < options.answerOptions.length; optionIndex++) {
       const option = options.answerOptions[optionIndex]
       
-      const bubbleX = questionX + optionIndex * 25 // 25px spacing between options
+      const bubbleX = questionX + optionIndex * sheetTemplate.optionSpacing
       const bubbleY = questionY
+      
+      console.log(`  Analyzing option ${option} at (${bubbleX.toFixed(0)}, ${bubbleY.toFixed(0)})`)
       
       const bubbleResult = analyzeBubbleAtPosition(
         imageData, 
@@ -324,7 +344,7 @@ const detectBubblesWithTemplate = async (
       
       results[questionNumber][option] = bubbleResult
       
-      console.log(`  ${option}: ratio=${bubbleResult.filledPixelRatio.toFixed(3)}, confidence=${bubbleResult.confidence.toFixed(3)}, filled=${bubbleResult.isFilled}`)
+      console.log(`  ${option}: filled=${bubbleResult.isFilled}, confidence=${bubbleResult.confidence.toFixed(3)}, review=${bubbleResult.needsReview}`)
     }
   }
   
@@ -334,6 +354,7 @@ const detectBubblesWithTemplate = async (
 /**
  * Analyze individual bubble using filledPixelRatio method
  * Core algorithm: blackPixels / totalPixels
+ * IMPROVED VERSION with better debugging and detection
  */
 const analyzeBubbleAtPosition = (
   imageData: ImageData,
@@ -348,6 +369,7 @@ const analyzeBubbleAtPosition = (
   
   let blackPixels = 0
   let totalPixels = 0
+  let pixelValues: number[] = []
   
   // Scan circular area around bubble center
   for (let y = Math.max(0, centerY - radius); y <= Math.min(height - 1, centerY + radius); y++) {
@@ -359,7 +381,10 @@ const analyzeBubbleAtPosition = (
         const pixelValue = data[idx] // Red channel (grayscale)
         
         totalPixels++
-        if (pixelValue < 128) { // Black pixel threshold
+        pixelValues.push(pixelValue)
+        
+        // UPDATED THRESHOLD for inverted image
+        if (pixelValue > 127) { // Changed: white pixels in inverted image = filled bubbles
           blackPixels++
         }
       }
@@ -368,26 +393,39 @@ const analyzeBubbleAtPosition = (
   
   const filledPixelRatio = totalPixels > 0 ? blackPixels / totalPixels : 0
   
-  // CONFIDENCE SCORING RULES (as per requirements)
+  // Calculate statistics for debugging
+  const avgPixelValue = pixelValues.length > 0 ? pixelValues.reduce((a, b) => a + b, 0) / pixelValues.length : 255
+  const minPixelValue = pixelValues.length > 0 ? Math.min(...pixelValues) : 255
+  const maxPixelValue = pixelValues.length > 0 ? Math.max(...pixelValues) : 255
+  
+  console.log(`    Bubble analysis: center=(${centerX.toFixed(0)}, ${centerY.toFixed(0)}) radius=${radius}`)
+  console.log(`    Pixels: total=${totalPixels}, black=${blackPixels}, ratio=${filledPixelRatio.toFixed(3)}`)
+  console.log(`    Values: avg=${avgPixelValue.toFixed(0)}, min=${minPixelValue}, max=${maxPixelValue}`)
+  
+  // IMPROVED CONFIDENCE SCORING RULES
   let confidence: number
   let isFilled: boolean
   let needsReview: boolean
   
-  if (filledPixelRatio >= 0.7) {
-    // Clearly filled
-    confidence = Math.min(1.0, filledPixelRatio + 0.2)
+  // More sensitive thresholds for better detection
+  if (filledPixelRatio >= 0.3) { // Lowered from 0.7 to 0.3
+    // Likely filled
+    confidence = Math.min(1.0, filledPixelRatio * 2) // Boost confidence
     isFilled = true
-    needsReview = false
-  } else if (filledPixelRatio >= 0.4) {
+    needsReview = filledPixelRatio < 0.5 // Review if less than 50%
+    console.log(`    -> FILLED (ratio=${filledPixelRatio.toFixed(3)}, confidence=${confidence.toFixed(3)})`)
+  } else if (filledPixelRatio >= 0.15) { // Lowered from 0.4 to 0.15
     // Uncertain - needs manual review
-    confidence = filledPixelRatio
+    confidence = filledPixelRatio * 2
     isFilled = false
     needsReview = true
+    console.log(`    -> UNCERTAIN (ratio=${filledPixelRatio.toFixed(3)}, needs review)`)
   } else {
     // Clearly blank
     confidence = 1.0 - filledPixelRatio
     isFilled = false
     needsReview = false
+    console.log(`    -> BLANK (ratio=${filledPixelRatio.toFixed(3)})`)
   }
   
   return {
