@@ -71,7 +71,7 @@ export class AIService {
             ]
           }
         ],
-        model: "meta-llama/llama-4-scout-17b-16e-instruct", // New Llama 4 vision model
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         temperature: 0.1,
         max_tokens: 2048
       })
@@ -206,53 +206,49 @@ export class AIService {
     const groq = getGroqClient()
 
     try {
-      const prompt = `
-        You are analyzing an OMR (Optical Mark Recognition) answer sheet. This is a standardized test form with multiple choice questions.
+      const prompt = `You are a computer vision AI specialized in OMR (Optical Mark Recognition) analysis.
 
-        TYPICAL OMR SHEET LAYOUT:
-        Question 1:  (A) (B) (C) (D) (E)
-        Question 2:  (A) (B) (C) (D) (E)
-        Question 3:  (A) (B) (C) (D) (E)
-        ...and so on
+Task: Analyze this OMR answer sheet image and detect filled circles for each question.
 
-        WHAT MARKED CIRCLES LOOK LIKE:
-        - Filled circle: ●
-        - Empty circle: ○
-        - Partially filled: ◐
-        - Light pencil mark: ◯ (still counts as marked!)
+BINARY VISUAL VALIDATION APPROACH:
+For each circle in the OMR grid, apply binary classification: FILLED or NOT_FILLED
 
-        DETECTION STRATEGY:
-        1. Scan the image systematically row by row
-        2. For each row, check circles from left to right (A, B, C, D, E)
-        3. Look for ANY difference between empty and marked circles
-        4. Even faint gray areas inside circles = MARKED
-        5. Trust your visual analysis - if you see ANY marking, count it
+CIRCLE ANALYSIS RULES (from ai_analys.md):
+- FILLED = the inside area of the circle is mostly dark/colored
+- NOT_FILLED = the inside area is mostly white or lightly marked
+- Ignore circle borders - focus ONLY on interior darkness coverage
+- Ignore small dots, scratches, or partial marks unless they cover most of the interior
+- Treat scribbles as FILLED if they cover most of the circle interior
+- Do not guess: make decisions based on visible darkness inside the circle
 
-        MARKING DETECTION RULES:
-        ✓ FILLED CIRCLE = Valid answer
-        ✓ DARKENED AREA = Valid answer 
-        ✓ PENCIL MARKS inside circle = Valid answer
-        ✓ PEN MARKS inside circle = Valid answer
-        ✓ PARTIAL FILLING = Valid answer
-        ✓ LIGHT SHADING = Valid answer
-        ✗ COMPLETELY EMPTY circle = Not marked
+DETECTION PRIORITY:
+1. Look for darkness coverage inside each circle
+2. Light pencil marks that cover significant area = FILLED
+3. Pen marks, shading, scribbles = FILLED
+4. Mostly white interior = NOT_FILLED
+5. Be generous but not overly permissive
 
-        ANSWER CLASSIFICATION:
-        - If ONE circle is marked in a row → Return that letter (A, B, C, D, E)
-        - If NO circles are marked in a row → Return "BLANK"
-        - If MULTIPLE circles are marked in a row → Return "UNCLEAR"
+OMR GRID STRUCTURE:
+- Each row = one question
+- Each column = answer option (A, B, C, D, E)
+- Scan systematically: row by row, left to right
 
-        CRITICAL: Be VERY generous in detecting marks. Students often make light pencil marks. If you're unsure whether a circle is marked, assume it IS marked rather than blank.
+ANSWER DETERMINATION PER QUESTION:
+- If exactly ONE circle is FILLED → Return that letter (A, B, C, D, E)
+- If NO circles are FILLED → Return "BLANK"
+- If MULTIPLE circles are FILLED → Return the first detected filled circle
+- If uncertain about any circle → err on the side of detecting it as FILLED
 
-        Respond with ONLY this JSON format:
-        {
-          "answers": ["A", "B", "C", "BLANK", "D", ...],
-          "confidence": 0.95,
-          "imageQuality": 0.9,
-          "totalQuestions": 50,
-          "notes": "Detected X marked answers out of Y questions"
-        }
-      `
+OUTPUT FORMAT (JSON only):
+{
+  "answers": ["A", "B", "C", "BLANK", "D", ...],
+  "confidence": 0.95,
+  "imageQuality": 0.9,
+  "totalQuestions": 50,
+  "notes": "Detected X marked answers out of Y questions"
+}
+
+CRITICAL: Apply binary visual validation to each circle. If you see ANY darkness inside a circle, classify it as FILLED.`
 
       const completion = await groq.chat.completions.create({
         messages: [
@@ -272,10 +268,10 @@ export class AIService {
             ]
           }
         ],
-        model: "meta-llama/llama-4-scout-17b-16e-instruct", // New Llama 4 vision model
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         temperature: 0.1,
         max_tokens: 2048,
-        response_format: { type: "json_object" } // Force JSON response
+        response_format: { type: "json_object" }
       })
 
       const response = completion.choices[0]?.message?.content
@@ -411,26 +407,24 @@ export class AIService {
     const groq = getGroqClient()
 
     try {
-      const prompt = `
-        Quyidagi imtihon savollarini tahlil qiling:
+      const prompt = `Quyidagi imtihon savollarini tahlil qiling:
         
-        Savollar:
-        ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
-        
-        Vazifalar:
-        1. Savollar qiyinlik darajasini baholang
-        2. Savollar sifatini tahlil qiling
-        3. Yaxshilash takliflarini bering
-        4. Savollarni yaxshilang
-        
-        Javobni JSON formatida bering:
-        {
-          "analysis": "umumiy tahlil",
-          "difficulty": "medium",
-          "suggestions": ["takliflar"],
-          "improvedQuestions": ["yaxshilangan savollar"]
-        }
-      `
+Savollar:
+${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+Vazifalar:
+1. Savollar qiyinlik darajasini baholang
+2. Savollar sifatini tahlil qiling
+3. Yaxshilash takliflarini bering
+4. Savollarni yaxshilang
+
+Javobni JSON formatida bering:
+{
+  "analysis": "umumiy tahlil",
+  "difficulty": "medium",
+  "suggestions": ["takliflar"],
+  "improvedQuestions": ["yaxshilangan savollar"]
+}`
 
       const completion = await groq.chat.completions.create({
         messages: [
