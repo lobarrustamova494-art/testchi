@@ -120,6 +120,10 @@ const ExamScanner: React.FC = () => {
   }
 
   const processWithAI = async (imageData: string) => {
+    console.log('=== PROCESS WITH AI STARTED ===')
+    console.log('Image data length:', imageData.length)
+    console.log('Exam data:', exam)
+    
     if (!exam || !exam.answerKey || exam.answerKey.length === 0) {
       setError('Imtihon kalitlari belgilanmagan. Avval kalitlarni belgilang.')
       return
@@ -156,12 +160,15 @@ const ExamScanner: React.FC = () => {
 
       const startTime = Date.now()
       
+      console.log('Calling AIService.analyzeOMRSheet...')
       // AI tahlil
       const aiResult = await AIService.analyzeOMRSheet(
         imageData,
         exam.answerKey,
         exam.scoring || { correct: 1, wrong: 0, blank: 0 }
       )
+      
+      console.log('AI analysis completed:', aiResult)
       
       clearInterval(progressInterval)
       setAnalysisProgress(100)
