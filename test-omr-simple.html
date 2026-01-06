@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple OMR Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-form { max-width: 600px; margin: 0 auto; }
+        .question { margin: 20px 0; display: flex; align-items: center; }
+        .question-number { width: 30px; font-weight: bold; }
+        .options { display: flex; gap: 20px; margin-left: 20px; }
+        .option { display: flex; align-items: center; gap: 5px; }
+        .circle { width: 20px; height: 20px; border: 2px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .filled { background-color: #000; color: white; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="test-form">
+        <h2>Simple OMR Test Sheet</h2>
+        <p>Test pattern: A, A, A, B, B, B, BLANK, BLANK, BLANK, BLANK</p>
+        
+        <div class="question">
+            <div class="question-number">1.</div>
+            <div class="options">
+                <div class="option"><div class="circle filled">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">2.</div>
+            <div class="options">
+                <div class="option"><div class="circle filled">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">3.</div>
+            <div class="options">
+                <div class="option"><div class="circle filled">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">4.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle filled">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">5.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle filled">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">6.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle filled">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">7.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">8.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">9.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-number">10.</div>
+            <div class="options">
+                <div class="option"><div class="circle">A</div></div>
+                <div class="option"><div class="circle">B</div></div>
+                <div class="option"><div class="circle">C</div></div>
+                <div class="option"><div class="circle">D</div></div>
+                <div class="option"><div class="circle">E</div></div>
+            </div>
+        </div>
+        
+        <button onclick="captureAndTest()">Capture & Test AI Analysis</button>
+    </div>
+
+    <script>
+        async function captureAndTest() {
+            // Convert HTML to canvas and then to base64
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 600;
+            canvas.height = 800;
+            
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the form content
+            ctx.fillStyle = 'black';
+            ctx.font = '16px Arial';
+            ctx.fillText('Simple OMR Test Sheet', 50, 50);
+            
+            // Draw questions and circles
+            for (let i = 0; i < 10; i++) {
+                const y = 100 + i * 60;
+                ctx.fillText(`${i + 1}.`, 50, y);
+                
+                // Draw circles for options A, B, C, D, E
+                for (let j = 0; j < 5; j++) {
+                    const x = 100 + j * 80;
+                    const letter = String.fromCharCode(65 + j); // A, B, C, D, E
+                    
+                    // Draw circle
+                    ctx.beginPath();
+                    ctx.arc(x, y - 5, 15, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                    // Fill circle based on pattern
+                    let shouldFill = false;
+                    if (i < 3 && j === 0) shouldFill = true; // Questions 1-3: A
+                    if (i >= 3 && i < 6 && j === 1) shouldFill = true; // Questions 4-6: B
+                    
+                    if (shouldFill) {
+                        ctx.fillStyle = 'black';
+                        ctx.fill();
+                        ctx.fillStyle = 'white';
+                        ctx.fillText(letter, x - 5, y);
+                        ctx.fillStyle = 'black';
+                    } else {
+                        ctx.fillText(letter, x - 5, y);
+                    }
+                }
+            }
+            
+            // Convert to base64
+            const base64 = canvas.toDataURL('image/png');
+            
+            // Test the AI analysis
+            try {
+                const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        image: base64.split(',')[1], // Remove data:image/png;base64, prefix
+                        answerKey: ['A', 'B', 'C', 'D', 'E', 'A', 'B', 'C', 'D', 'E'],
+                        scoring: { correct: 1, wrong: 0, blank: 0 }
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('AI Analysis Result:', result);
+                alert('Check console for AI analysis result');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

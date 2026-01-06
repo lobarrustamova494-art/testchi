@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real OMR Test Analysis</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+        .container { 
+            text-align: center; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .answer-key, .student-answers {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .question-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .correct { background-color: #d4edda; }
+        .wrong { background-color: #f8d7da; }
+        .blank { background-color: #fff3cd; }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .primary { background-color: #007bff; color: white; }
+        .success { background-color: #28a745; color: white; }
+        .danger { background-color: #dc3545; color: white; }
+        .results {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real OMR Test Analysis - DTM-Style Official Examination</h1>
+    
+    <div class="container">
+        <h2>Imtihon Ma'lumotlari</h2>
+        <p><strong>Jami savollar:</strong> 20 ta</p>
+        <p><strong>Baholash tizimi:</strong> To'g'ri +1, Noto'g'ri 0, Bo'sh 0</p>
+        <p><strong>AI yondashuvi:</strong> Inson darajasidagi aniqlik bilan tahlil</p>
+        <p><strong>Maqsad:</strong> AI inson tahlilchisi kabi aniq natija berishi kerak</p>
+        <p><strong>Inson tahlili:</strong> Q1=A, Q2=A, Q7=C, Q8=C, Q9=A, Q12=D, Q14=D, Q16=B, Q17=D, Q18=A, Q20=D</p>
+    </div>
+
+    <div class="grid">
+        <div class="answer-key">
+            <h3>📋 To'g'ri Javoblar (Kalitlar)</h3>
+            <div id="answer-key-display"></div>
+        </div>
+        
+        <div class="student-answers">
+            <h3>✏️ Talaba Javoblari (Rasmdan)</h3>
+            <div id="student-answers-display"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <button class="primary" onclick="analyzeManually()">Qo'lda Tahlil Qilish</button>
+        <button class="success" onclick="analyzeWithAI()">AI bilan Tahlil Qilish</button>
+    </div>
+
+    <div id="results" class="results" style="display: none;">
+        <h3>📊 Tahlil Natijalari</h3>
+        <div id="results-content"></div>
+    </div>
+
+    <script>
+        // Kalitlar (2-rasmdan olingan)
+        const answerKey = [
+            'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'D',  // 1-10
+            'D', 'D', 'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C'   // 11-20
+        ];
+
+        // Talaba javoblari (rasmdan inson tahlilchisi tomonidan aniq aniqlangan)
+        // INSON TAHLILI NATIJALARI:
+        const studentAnswers = [
+            'A', 'A', 'BLANK', 'BLANK', 'BLANK', 'BLANK', 'C', 'C',        // 1-8 (yuqori qism)
+            'A', 'BLANK', 'BLANK', 'D', 'BLANK', 'D', 'BLANK', 'B',        // 9-16 (o'rta qism)
+            'D', 'A', 'BLANK', 'D'                                         // 17-20 (pastki qism)
+        ];
+
+        // Adjust to 20 questions only
+        const student20 = studentAnswers.slice(0, 20);
+
+        function displayAnswers() {
+            const keyDisplay = document.getElementById('answer-key-display');
+            const studentDisplay = document.getElementById('student-answers-display');
+            
+            let keyHTML = '';
+            let studentHTML = '';
+            
+            for (let i = 0; i < 20; i++) {
+                keyHTML += `<div class="question-row">
+                    <span><strong>Q${i+1}:</strong></span>
+                    <span>${answerKey[i]}</span>
+                </div>`;
+                
+                studentHTML += `<div class="question-row">
+                    <span><strong>Q${i+1}:</strong></span>
+                    <span>${student20[i] || 'BLANK'}</span>
+                </div>`;
+            }
+            
+            keyDisplay.innerHTML = keyHTML;
+            studentDisplay.innerHTML = studentHTML;
+        }
+
+        function analyzeManually() {
+            let correct = 0;
+            let wrong = 0;
+            let blank = 0;
+            let score = 0;
+            
+            let detailedResults = '';
+            
+            for (let i = 0; i < 20; i++) {
+                const studentAns = student20[i] || 'BLANK';
+                const correctAns = answerKey[i];
+                let isCorrect = false;
+                let questionScore = 0;
+                let cssClass = '';
+                
+                if (studentAns === 'BLANK') {
+                    blank++;
+                    questionScore = 0;
+                    cssClass = 'blank';
+                } else if (studentAns === correctAns) {
+                    correct++;
+                    isCorrect = true;
+                    questionScore = 1;
+                    score += 1;
+                    cssClass = 'correct';
+                } else {
+                    wrong++;
+                    questionScore = 0;
+                    cssClass = 'wrong';
+                }
+                
+                detailedResults += `
+                    <div class="question-row ${cssClass}">
+                        <span><strong>Q${i+1}:</strong></span>
+                        <span>Talaba: ${studentAns}</span>
+                        <span>To'g'ri: ${correctAns}</span>
+                        <span>${isCorrect ? '✅' : (studentAns === 'BLANK' ? '⚪' : '❌')}</span>
+                        <span>Ball: ${questionScore}</span>
+                    </div>
+                `;
+            }
+            
+            const percentage = Math.round((correct / 20) * 100);
+            
+            const resultsHTML = `
+                <div class="score">Jami Ball: ${score}/20 (${percentage}%)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <div style="text-align: center; padding: 15px; background: #d4edda; border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #155724;">${correct}</div>
+                        <div>To'g'ri</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8d7da; border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #721c24;">${wrong}</div>
+                        <div>Noto'g'ri</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #856404;">${blank}</div>
+                        <div>Bo'sh</div>
+                    </div>
+                </div>
+                <h4>Batafsil Natijalar:</h4>
+                ${detailedResults}
+            `;
+            
+            document.getElementById('results-content').innerHTML = resultsHTML;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        async function analyzeWithAI() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = '<div style="text-align: center;">🏛️ AI DTM-style rasmiy imtihon tekshirish kabi tahlil qilinmoqda...</div>';
+            resultsDiv.style.display = 'block';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token topilmadi. Avval login qiling: http://localhost:5173');
+                }
+                
+                // Create a simple test image (since we can't process the actual image here)
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 1000;
+                const ctx = canvas.getContext('2d');
+                
+                // Fill white background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw OMR-like structure
+                ctx.fillStyle = 'black';
+                ctx.font = '16px Arial';
+                ctx.fillText('OMR Test Sheet', 50, 50);
+                
+                // Draw questions and simulate the student answers
+                for (let i = 0; i < 20; i++) {
+                    const y = 100 + i * 40;
+                    ctx.fillText(`${i + 1}.`, 50, y);
+                    
+                    // Draw circles for options A, B, C, D, E
+                    for (let j = 0; j < 5; j++) {
+                        const x = 100 + j * 60;
+                        const letter = String.fromCharCode(65 + j); // A, B, C, D, E
+                        
+                        // Draw circle
+                        ctx.beginPath();
+                        ctx.arc(x, y - 5, 12, 0, 2 * Math.PI);
+                        ctx.stroke();
+                        
+                        // Fill circle based on student answers
+                        const studentAns = student20[i];
+                        if (studentAns === letter) {
+                            ctx.fillStyle = 'black';
+                            ctx.fill();
+                            ctx.fillStyle = 'white';
+                            ctx.fillText(letter, x - 4, y);
+                            ctx.fillStyle = 'black';
+                        } else {
+                            ctx.fillText(letter, x - 4, y);
+                        }
+                    }
+                }
+                
+                const imageData = canvas.toDataURL('image/png');
+                
+                const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        image: imageData.split(',')[1],
+                        answerKey: answerKey,
+                        scoring: { correct: 1, wrong: 0, blank: 0 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    const percentage = Math.round((data.correctAnswers / 20) * 100);
+                    
+                    let detailedResults = '';
+                    if (data.detailedResults) {
+                        data.detailedResults.forEach(item => {
+                            const cssClass = item.isCorrect ? 'correct' : (item.studentAnswer === '' ? 'blank' : 'wrong');
+                            const icon = item.isCorrect ? '✅' : (item.studentAnswer === '' ? '⚪' : '❌');
+                            
+                            detailedResults += `
+                                <div class="question-row ${cssClass}">
+                                    <span><strong>Q${item.questionNumber}:</strong></span>
+                                    <span>AI: ${item.studentAnswer || 'BLANK'}</span>
+                                    <span>To'g'ri: ${item.correctAnswer}</span>
+                                    <span>${icon}</span>
+                                    <span>Ball: ${item.score}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    const resultsHTML = `
+                        <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4>🏛️ AI DTM-Style Official Examination Natijalari</h4>
+                            <p><strong>Examination Approach:</strong> DTM-style official examination (strict and conservative)</p>
+                            <p><strong>Standards:</strong> Only clear markings accepted, uncertain cases marked as UNCERTAIN</p>
+                            <p><strong>Ishonch darajasi:</strong> ${Math.round(data.confidence * 100)}%</p>
+                        </div>
+                        <div class="score">Jami Ball: ${data.totalScore}/20 (${percentage}%)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 20px 0;">
+                            <div style="text-align: center; padding: 15px; background: #d4edda; border-radius: 8px;">
+                                <div style="font-size: 24px; font-weight: bold; color: #155724;">${data.correctAnswers}</div>
+                                <div>To'g'ri</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: #f8d7da; border-radius: 8px;">
+                                <div style="font-size: 24px; font-weight: bold; color: #721c24;">${data.wrongAnswers}</div>
+                                <div>Noto'g'ri</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                                <div style="font-size: 24px; font-weight: bold; color: #856404;">${data.blankAnswers}</div>
+                                <div>Bo'sh</div>
+                            </div>
+                        </div>
+                        ${detailedResults ? `<h4>Batafsil Natijalar:</h4>${detailedResults}` : ''}
+                    `;
+                    
+                    resultsContent.innerHTML = resultsHTML;
+                } else {
+                    resultsContent.innerHTML = `<div class="error">❌ AI tahlil xatosi: ${result.message}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('AI test error:', error);
+                resultsContent.innerHTML = `<div class="error">❌ AI tahlil xatosi: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize display
+        window.onload = function() {
+            displayAnswers();
+        };
+    </script>
+</body>
+</html>

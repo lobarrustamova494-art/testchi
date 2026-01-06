@@ -290,6 +290,48 @@ Loyihada professional va zamonaviy loading komponentlari qo'shildi:
 
 Loyihaga Groq AI yordamida kuchli tahlil funksiyalari qo'shildi:
 
+### OMR Varaq Tahlili (DTM-Style!)
+- **DTM-style official examination** - qat'iy va konservativ yondashuv
+- **Letter recognition first** - avval aylanalar ichidagi harflarni o'qish
+- **Position verification** - har bir qatorda A, B, C, D, E tartibini tasdiqlash
+- **Marking by letter content** - pozitsiya sanash emas, harf mazmuni asosida aniqlash
+- **Conservative approach** - shubhali holatlarni UNCERTAIN deb belgilash
+- **No guessing policy** - talaba niyatini taxmin qilmaslik
+
+#### DTM-Style Letter Recognition Process
+**1. Harf O'qish Jarayoni:**
+- ✅ Har bir aylanadagi harfni chapdan o'ngga o'qish
+- ✅ A, B, C, D, E tartibini tasdiqlash
+- ✅ Harf ketma-ketligini tekshirish
+
+**2. Belgilash Aniqlash:**
+- ✅ Qaysi harfning aylanasi belgilanganini aniqlash
+- ✅ Belgilangan aylanadagi harfni o'qish
+- ✅ O'sha harfni javob sifatida berish
+
+**3. Xatolarni Oldini Olish:**
+- ❌ Pozitsiya sanashga asoslanmaslik
+- ❌ Harflarni o'qimasdan javob bermaslik
+- ❌ Taxminiy javoblar bermaslik
+
+#### DTM-Style Examination Rules
+**CORRECT deb hisoblanadi:**
+- ✅ Aniq belgilangan va kalitdagi javob bilan mos kelgan
+- ✅ Faqat bitta aylana belgilangan va to'g'ri
+
+**WRONG deb hisoblanadi:**
+- ❌ Aniq belgilangan lekin kalitdagi javobdan farq qilgan
+- ❌ Bir nechta aylana belgilangan (INVALID)
+
+**BLANK deb hisoblanadi:**
+- ⚪ Hech qanday aylana belgilanmagan
+- ⚪ Hech qanday aniq belgi yo'q
+
+**UNCERTAIN deb hisoblanadi:**
+- ❓ Belgi noaniq, chalkash yoki qisman
+- ❓ Belgilash messy yoki unclear
+- ❓ Shubhali holatlar
+
 ### Rasm Tahlili
 - **OCR (Optical Character Recognition)** - rasmdan matnni ajratib olish
 - **Ko'p tilni qo'llab-quvvatlash** - o'zbek, rus, ingliz tillari
@@ -323,11 +365,41 @@ Loyihaga Groq AI yordamida kuchli tahlil funksiyalari qo'shildi:
 - **Base64 encoding** - xavfsiz fayl uzatish
 - **Progress tracking** - jarayon ko'rsatkichi
 
+### Test Sahifalari
+Loyihada AI funksiyalarini sinash uchun maxsus test sahifalari mavjud:
+
+1. **real-omr-test.html** - Haqiqiy OMR rasmlar bilan DTM-style test
+2. **letter-position-accuracy-test.html** - Harf pozitsiyasi aniqligini tekshirish (YANGI!)
+3. **dtm-style-test.html** - DTM-style rasmiy imtihon tekshirish testlari
+4. **position-mapping-test.html** - Pozitsiya mapping aniqligini tekshirish
+5. **professional-examiner-test.html** - Professional examiner yondashuvi testlari
+6. **generous-marking-test.html** - Generous detection testlari (eski yondashuv)
+7. **letter-visibility-test.html** - Harf ko'rinishi asosida aniqlash testi
+8. **ai-consistency-test.html** - AI izchillik testlari
+
 ## Ishlatish
 
 ### AI Tahlilchiga kirish
 1. Dashboard dan "AI Tahlilchi" tugmasini bosing
 2. Yoki to'g'ridan-to'g'ri `/ai-analysis` sahifasiga o'ting
+
+### OMR tahlili (Yangi!)
+```typescript
+// Frontend da
+const result = await AIService.analyzeOMRSheet(
+  imageBase64, 
+  answerKey, 
+  { correct: 1, wrong: 0, blank: 0 }
+)
+
+// Backend API
+POST /api/ai/analyze-omr
+{
+  "image": "base64_encoded_image",
+  "answerKey": ["A", "B", "C", "D", "E"],
+  "scoring": { "correct": 1, "wrong": 0, "blank": 0 }
+}
+```
 
 ### Rasm tahlili
 ```typescript

@@ -122,25 +122,73 @@ const ExamScanner: React.FC = () => {
   const processWithAI = async (imageData: string) => {
     console.log('=== PROCESS WITH AI STARTED ===')
     console.log('Image data length:', imageData.length)
+    console.log('Image data starts with:', imageData.substring(0, 50))
     console.log('Exam data:', exam)
     
-    if (!exam || !exam.answerKey || exam.answerKey.length === 0) {
+    if (!exam) {
+      setError('Imtihon ma\'lumotlari topilmadi')
+      return
+    }
+
+    // Validate answerKey
+    if (!exam.answerKey) {
       setError('Imtihon kalitlari belgilanmagan. Avval kalitlarni belgilang.')
+      return
+    }
+
+    // Ensure answerKey is an array
+    let answerKey: string[] = []
+    if (Array.isArray(exam.answerKey)) {
+      answerKey = exam.answerKey
+    } else if (typeof exam.answerKey === 'string') {
+      // If it's a string, try to parse it
+      try {
+        answerKey = JSON.parse(exam.answerKey)
+      } catch (e) {
+        answerKey = [exam.answerKey]
+      }
+    } else {
+      setError('Imtihon kalitlari noto\'g\'ri formatda')
+      return
+    }
+
+    if (!Array.isArray(answerKey) || answerKey.length === 0) {
+      setError('Imtihon kalitlari bo\'sh yoki noto\'g\'ri formatda')
       return
     }
 
     // Answer key validation
     const totalQuestions = getTotalQuestions(exam)
-    if (exam.answerKey.length !== totalQuestions) {
-      setError(`Kalitlar soni (${exam.answerKey.length}) savollar soniga (${totalQuestions}) mos kelmaydi`)
+    if (answerKey.length !== totalQuestions) {
+      setError(`Kalitlar soni (${answerKey.length}) savollar soniga (${totalQuestions}) mos kelmaydi`)
       return
     }
 
+    // Validate and normalize scoring
+    let scoring = exam.scoring
+    if (!scoring || typeof scoring !== 'object') {
+      console.warn('Scoring not found, using default values')
+      scoring = { correct: 1, wrong: 0, blank: 0 }
+    }
+
+    // Ensure all scoring values are numbers
+    if (typeof scoring.correct !== 'number') scoring.correct = 1
+    if (typeof scoring.wrong !== 'number') scoring.wrong = 0
+    if (typeof scoring.blank !== 'number') scoring.blank = 0
+
     console.log('=== AI TAHLIL BOSHLANDI ===')
     console.log('Exam data:', exam)
-    console.log('Answer key:', exam.answerKey)
+    console.log('Answer key:', answerKey)
+    console.log('Answer key type:', Array.isArray(answerKey))
+    console.log('Answer key length:', answerKey.length)
     console.log('Total questions:', totalQuestions)
-    console.log('Scoring:', exam.scoring)
+    console.log('Scoring:', scoring)
+    console.log('Scoring type:', typeof scoring)
+    console.log('Scoring validation:', {
+      hasCorrect: typeof scoring.correct === 'number',
+      hasWrong: typeof scoring.wrong === 'number',
+      hasBlank: typeof scoring.blank === 'number'
+    })
 
     setAiAnalyzing(true)
     setAnalysisProgress(0)
@@ -161,11 +209,17 @@ const ExamScanner: React.FC = () => {
       const startTime = Date.now()
       
       console.log('Calling AIService.analyzeOMRSheet...')
+      console.log('Parameters:', {
+        imageData: `[${imageData.length} chars]`,
+        answerKey: answerKey,
+        scoring: scoring
+      })
+      
       // AI tahlil
       const aiResult = await AIService.analyzeOMRSheet(
         imageData,
-        exam.answerKey,
-        exam.scoring || { correct: 1, wrong: 0, blank: 0 }
+        answerKey,
+        scoring
       )
       
       console.log('AI analysis completed:', aiResult)
@@ -250,6 +304,56 @@ const ExamScanner: React.FC = () => {
     setValidationResult(null)
     setError('')
     setAnalysisProgress(0)
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Faqat rasm fayllarini yuklash mumkin')
+      return
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Fayl hajmi 10MB dan oshmasligi kerak')
+      return
+    }
+
+    try {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const imageData = e.target?.result as string
+        setScannedImage(imageData)
+        
+        try {
+          const validation = await validateOMRSheet(imageData)
+          setValidationResult(validation)
+          
+          if (!validation.isValid) {
+            return
+          }
+        
+          // Avtomatik AI tahlil qilish
+          await processWithAI(imageData)
+        } catch (error) {
+          console.error('Validation error:', error)
+          setError('Rasm validatsiyasida xatolik')
+        }
+      }
+      reader.onerror = () => {
+        setError('Faylni o\'qishda xatolik yuz berdi')
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('File upload error:', error)
+      setError('Fayl yuklashda xatolik yuz berdi')
+    }
+
+    // Clear the input value so the same file can be selected again
+    event.target.value = ''
   }
 
   if (loading) {
@@ -675,6 +779,17 @@ const ExamScanner: React.FC = () => {
               Kamera bilan skanerlash
             </LoadingButton>
             
+            <LoadingButton
+              onClick={() => document.getElementById('file-upload')?.click()}
+              loading={aiAnalyzing}
+              loadingText="Tahlil qilinmoqda..."
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+              icon={<FileText size={20} />}
+            >
+              Fayl yuklash
+            </LoadingButton>
+            
             {scannedImage && !scanResult && (
               <LoadingButton
                 onClick={() => processWithAI(scannedImage)}
@@ -682,6 +797,7 @@ const ExamScanner: React.FC = () => {
                 loadingText="AI tahlil qilinmoqda..."
                 variant="outline"
                 icon={<Brain size={20} />}
+                className="md:col-span-2"
               >
                 AI bilan qayta tahlil
               </LoadingButton>
@@ -700,6 +816,15 @@ const ExamScanner: React.FC = () => {
             </div>
           ) : null}
         </div>
+
+        {/* Hidden file input */}
+        <input
+          id="file-upload"
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
     </div>
   )

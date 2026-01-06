@@ -39,6 +39,22 @@ class ApiService {
       headers['Authorization'] = `Bearer ${this.token}`
     }
 
+    console.log('=== API REQUEST DEBUG ===')
+    console.log('URL:', url)
+    console.log('Method:', options.method || 'GET')
+    console.log('Headers:', headers)
+    if (options.body) {
+      try {
+        const bodyObj = JSON.parse(options.body as string)
+        console.log('Request body structure:', {
+          ...bodyObj,
+          image: bodyObj.image ? `[base64 string of ${bodyObj.image.length} chars]` : undefined
+        })
+      } catch (e) {
+        console.log('Request body (raw):', options.body)
+      }
+    }
+
     try {
       const response = await fetch(url, {
         ...options,
@@ -47,8 +63,14 @@ class ApiService {
 
       const data = await response.json()
 
+      console.log('=== API RESPONSE DEBUG ===')
+      console.log('Status:', response.status)
+      console.log('OK:', response.ok)
+      console.log('Response data:', data)
+
       if (!response.ok) {
         console.error('API Error Response:', data)
+        console.error('Error details:', data.errors)
         throw new Error(data.message || 'API xatoligi')
       }
 

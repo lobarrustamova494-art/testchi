@@ -113,6 +113,32 @@ export class AIService {
     scoring: { correct: number; wrong: number; blank: number }
   ): Promise<OMRAnalysisResult> {
     try {
+      console.log('=== FRONTEND AI SERVICE DEBUG ===')
+      console.log('Image type:', typeof image)
+      console.log('Image length/size:', typeof image === 'string' ? image.length : image.size)
+      console.log('Answer key:', answerKey)
+      console.log('Answer key type:', Array.isArray(answerKey))
+      console.log('Answer key length:', answerKey?.length)
+      console.log('Scoring:', scoring)
+      console.log('Scoring type:', typeof scoring)
+      
+      // Validate inputs
+      if (!answerKey || !Array.isArray(answerKey)) {
+        throw new Error('Answer key array formatida bo\'lishi kerak')
+      }
+      
+      if (answerKey.length === 0) {
+        throw new Error('Answer key bo\'sh bo\'lmasligi kerak')
+      }
+      
+      if (!scoring || typeof scoring !== 'object') {
+        throw new Error('Scoring obyekt formatida bo\'lishi kerak')
+      }
+      
+      if (typeof scoring.correct !== 'number' || typeof scoring.wrong !== 'number' || typeof scoring.blank !== 'number') {
+        throw new Error('Scoring qiymatlari raqam bo\'lishi kerak')
+      }
+      
       let base64Image: string
 
       if (typeof image === 'string') {
@@ -133,13 +159,40 @@ export class AIService {
         throw new Error('Base64 rasm ma\'lumotlari noto\'g\'ri yoki juda qisqa')
       }
 
+      console.log('=== SENDING TO BACKEND ===')
+      console.log('Base64 image length:', base64Image.length)
+      console.log('Answer key type:', Array.isArray(answerKey))
+      console.log('Answer key valid:', answerKey && answerKey.length > 0)
+      console.log('Scoring valid:', scoring && typeof scoring.correct === 'number')
+
+      // Ensure answerKey is properly formatted
+      const normalizedAnswerKey = answerKey.map(answer => {
+        if (!answer || answer.trim() === '') return ''
+        return answer.toString().trim().toUpperCase()
+      })
+
+      // Ensure scoring has proper number values
+      const normalizedScoring = {
+        correct: Number(scoring.correct) || 1,
+        wrong: Number(scoring.wrong) || 0,
+        blank: Number(scoring.blank) || 0
+      }
+
+      const requestBody = {
+        image: base64Image,
+        answerKey: normalizedAnswerKey,
+        scoring: normalizedScoring
+      }
+
+      console.log('Request body structure:', {
+        image: `[base64 string of ${base64Image.length} chars]`,
+        answerKey: normalizedAnswerKey,
+        scoring: normalizedScoring
+      })
+
       const response = await apiService.request<OMRAnalysisResult>('/ai/analyze-omr', {
         method: 'POST',
-        body: JSON.stringify({
-          image: base64Image,
-          answerKey,
-          scoring
-        })
+        body: JSON.stringify(requestBody)
       })
 
       return response.data || {} as OMRAnalysisResult

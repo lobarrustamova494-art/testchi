@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Human-Level Precision Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .container { 
+            text-align: center; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        .human-analysis {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .expected-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .result-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        .answer-list {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        button { 
+            padding: 12px 24px; 
+            margin: 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .primary { background-color: #28a745; color: white; }
+        .success { background-color: #007bff; color: white; }
+        .results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .test-case {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .perfect-match { background: #d4edda; border-color: #28a745; }
+        .mismatch { background: #f8d7da; border-color: #dc3545; }
+        .precision-score {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .perfect { background: #d4edda; color: #155724; }
+        .good { background: #fff3cd; color: #856404; }
+        .poor { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Human-Level Precision Test</h1>
+    <p>Bu test AI ning inson darajasidagi aniqlik bilan OMR varaqni tahlil qilish qobiliyatini tekshiradi</p>
+    
+    <div class="human-analysis">
+        <h2>👨‍🏫 Inson Tahlilchisi Natijalari</h2>
+        <p><strong>Rasmni diqqat bilan tahlil qilib, quyidagi natijalarni oldim:</strong></p>
+        
+        <div class="expected-results">
+            <div class="result-section">
+                <div class="section-title">1-8 savollar (yuqori qism)</div>
+                <div class="answer-list">
+Q1: A (birinchi aylana ko'k)<br>
+Q2: A (birinchi aylana ko'k)<br>
+Q3: BLANK (hech narsa yo'q)<br>
+Q4: BLANK (hech narsa yo'q)<br>
+Q5: BLANK (hech narsa yo'q)<br>
+Q6: BLANK (hech narsa yo'q)<br>
+Q7: C (uchinchi aylana ko'k)<br>
+Q8: C (uchinchi aylana ko'k)
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <div class="section-title">9-16 savollar (o'rta qism)</div>
+                <div class="answer-list">
+Q9: A (birinchi aylana ko'k)<br>
+Q10: BLANK (hech narsa yo'q)<br>
+Q11: BLANK (hech narsa yo'q)<br>
+Q12: D (to'rtinchi aylana ko'k)<br>
+Q13: BLANK (hech narsa yo'q)<br>
+Q14: D (to'rtinchi aylana ko'k)<br>
+Q15: BLANK (hech narsa yo'q)<br>
+Q16: B (ikkinchi aylana ko'k)
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <div class="section-title">17-24 savollar (pastki qism)</div>
+                <div class="answer-list">
+Q17: D (to'rtinchi aylana ko'k)<br>
+Q18: A (birinchi aylana ko'k)<br>
+Q19: BLANK (hech narsa yo'q)<br>
+Q20: D (to'rtinchi aylana ko'k)<br>
+Q21: BLANK<br>
+Q22: BLANK<br>
+Q23: BLANK<br>
+Q24: BLANK
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <div class="section-title">25-30 savollar (eng pastki)</div>
+                <div class="answer-list">
+Q25: BLANK (hech narsa yo'q)<br>
+Q26: B (ikkinchi aylana ko'k)<br>
+Q27: BLANK (hech narsa yo'q)<br>
+Q28: BLANK (hech narsa yo'q)<br>
+Q29: BLANK (hech narsa yo'q)<br>
+Q30: E (beshinchi aylana ko'k)
+                </div>
+            </div>
+        </div>
+        
+        <p><strong>Jami:</strong> 30 ta savol, 12 ta javob belgilangan, 18 ta bo'sh</p>
+    </div>
+
+    <div class="container">
+        <h2>AI Precision Test</h2>
+        <p>AI yuqoridagi inson tahlilchisi natijalariga qanchalik mos kelishini tekshiramiz</p>
+        
+        <button class="primary" onclick="testHumanLevelPrecision()">🎯 Human-Level Precision Test</button>
+        <button class="success" onclick="testConsistency()">🔄 Consistency Test (5 marta)</button>
+    </div>
+
+    <div id="results" class="results" style="display: none;">
+        <h3>📊 Test Natijalari</h3>
+        <div id="results-content"></div>
+    </div>
+
+    <script>
+        // Human analysis results (ground truth)
+        const humanAnalysis = [
+            'A', 'A', 'BLANK', 'BLANK', 'BLANK', 'BLANK', 'C', 'C',        // 1-8
+            'A', 'BLANK', 'BLANK', 'D', 'BLANK', 'D', 'BLANK', 'B',        // 9-16
+            'D', 'A', 'BLANK', 'D', 'BLANK', 'BLANK', 'BLANK', 'BLANK',    // 17-24
+            'BLANK', 'B', 'BLANK', 'BLANK', 'BLANK', 'E'                   // 25-30
+        ];
+
+        // Answer key for scoring
+        const answerKey = [
+            'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'D',  // 1-10
+            'D', 'D', 'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C',  // 11-20
+            'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'D'   // 21-30
+        ];
+
+        function createRealOMRImage() {
+            // Since we can't recreate the exact image, we'll use a placeholder
+            // In real implementation, this would be the actual OMR image
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 1000;
+            const ctx = canvas.getContext('2d');
+            
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw title
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Human-Level Precision Test - Simulated OMR', 50, 40);
+            
+            // Draw note
+            ctx.font = '12px Arial';
+            ctx.fillText('Note: This is a simulation. In real test, use the actual OMR image.', 50, 60);
+            
+            // Simulate the pattern based on human analysis
+            const sections = [
+                { start: 1, end: 8, y: 100 },
+                { start: 9, end: 16, y: 300 },
+                { start: 17, end: 24, y: 500 },
+                { start: 25, end: 30, y: 700 }
+            ];
+            
+            sections.forEach(section => {
+                for (let i = section.start; i <= section.end; i++) {
+                    const y = section.y + (i - section.start) * 40;
+                    
+                    // Draw question number
+                    ctx.fillStyle = 'black';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(`${i}.`, 50, y);
+                    
+                    // Draw 5 circles
+                    for (let j = 0; j < 5; j++) {
+                        const x = 100 + j * 60;
+                        const letter = String.fromCharCode(65 + j); // A, B, C, D, E
+                        
+                        // Draw circle
+                        ctx.beginPath();
+                        ctx.arc(x, y - 5, 15, 0, 2 * Math.PI);
+                        ctx.stroke();
+                        
+                        // Fill based on human analysis
+                        const humanAnswer = humanAnalysis[i - 1];
+                        if (humanAnswer === letter) {
+                            ctx.fillStyle = 'blue';
+                            ctx.fill();
+                            ctx.fillStyle = 'white';
+                            ctx.font = 'bold 12px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(letter, x, y - 1);
+                            ctx.textAlign = 'left';
+                        } else {
+                            ctx.fillStyle = 'black';
+                            ctx.font = '12px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(letter, x, y - 1);
+                            ctx.textAlign = 'left';
+                        }
+                        ctx.fillStyle = 'black';
+                    }
+                }
+            });
+            
+            return canvas.toDataURL('image/png');
+        }
+
+        async function testHumanLevelPrecision() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = '<div style="text-align: center;">🎯 Human-Level Precision Test ishlamoqda...</div>';
+            resultsDiv.style.display = 'block';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token topilmadi. Avval login qiling: http://localhost:5173');
+                }
+                
+                const imageData = createRealOMRImage();
+                
+                const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        image: imageData.split(',')[1],
+                        answerKey: answerKey,
+                        scoring: { correct: 1, wrong: 0, blank: 0 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+                
+                const aiAnswers = result.data.extractedAnswers;
+                let perfectMatches = 0;
+                let detailedResults = '';
+                
+                // Compare AI results with human analysis
+                for (let i = 0; i < 30; i++) {
+                    const humanAnswer = humanAnalysis[i];
+                    const aiAnswer = aiAnswers[i] || 'BLANK';
+                    const isMatch = aiAnswer === humanAnswer;
+                    
+                    if (isMatch) perfectMatches++;
+                    
+                    const cssClass = isMatch ? 'perfect-match' : 'mismatch';
+                    
+                    detailedResults += `
+                        <div class="test-case ${cssClass}">
+                            <strong>Q${i+1}:</strong>
+                            <span style="color: #28a745; font-weight: bold;">Human: ${humanAnswer}</span> | 
+                            <span style="color: #007bff; font-weight: bold;">AI: ${aiAnswer}</span>
+                            ${isMatch ? '✅' : '❌'}
+                        </div>
+                    `;
+                }
+                
+                const precision = (perfectMatches / 30) * 100;
+                let precisionClass = 'poor';
+                let precisionText = 'Needs Major Improvement';
+                
+                if (precision >= 95) {
+                    precisionClass = 'perfect';
+                    precisionText = 'Perfect Human-Level Precision';
+                } else if (precision >= 85) {
+                    precisionClass = 'good';
+                    precisionText = 'Good Precision';
+                }
+                
+                resultsContent.innerHTML = `
+                    <div class="precision-score ${precisionClass}">
+                        Human-Level Precision: ${precision.toFixed(1)}%
+                        <br><small>${precisionText}</small>
+                    </div>
+                    
+                    <div class="test-case">
+                        <h4>Precision Analysis</h4>
+                        <p><strong>Perfect Matches:</strong> ${perfectMatches}/30</p>
+                        <p><strong>AI Confidence:</strong> ${Math.round(result.data.confidence * 100)}%</p>
+                        <p><strong>Target:</strong> 95%+ precision to match human examiner</p>
+                        <p><strong>Status:</strong> ${precision >= 95 ? '✅ AI matches human precision' : '❌ AI needs improvement'}</p>
+                    </div>
+                    
+                    <h4>Detailed Comparison:</h4>
+                    ${detailedResults}
+                `;
+                
+            } catch (error) {
+                console.error('Human-level precision test error:', error);
+                resultsContent.innerHTML = `<div class="test-case mismatch">❌ Test xatosi: ${error.message}</div>`;
+            }
+        }
+
+        async function testConsistency() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = '<div style="text-align: center;">🔄 Consistency Test (5 marta) ishlamoqda...</div>';
+            resultsDiv.style.display = 'block';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token topilmadi. Avval login qiling: http://localhost:5173');
+                }
+                
+                const imageData = createRealOMRImage();
+                const testResults = [];
+                
+                // Run the same test 5 times
+                for (let test = 1; test <= 5; test++) {
+                    const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            image: imageData.split(',')[1],
+                            answerKey: answerKey,
+                            scoring: { correct: 1, wrong: 0, blank: 0 }
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const aiAnswers = result.data.extractedAnswers;
+                        let matches = 0;
+                        
+                        for (let i = 0; i < 30; i++) {
+                            if (aiAnswers[i] === humanAnalysis[i]) {
+                                matches++;
+                            }
+                        }
+                        
+                        testResults.push({
+                            test: test,
+                            precision: (matches / 30) * 100,
+                            confidence: result.data.confidence,
+                            answers: aiAnswers
+                        });
+                    }
+                    
+                    // Small delay between tests
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                // Check consistency
+                const precisions = testResults.map(r => r.precision);
+                const avgPrecision = precisions.reduce((a, b) => a + b, 0) / precisions.length;
+                const maxPrecision = Math.max(...precisions);
+                const minPrecision = Math.min(...precisions);
+                const variance = maxPrecision - minPrecision;
+                
+                let consistencyStatus = 'Poor';
+                let consistencyClass = 'poor';
+                
+                if (variance <= 2) {
+                    consistencyStatus = 'Excellent';
+                    consistencyClass = 'perfect';
+                } else if (variance <= 5) {
+                    consistencyStatus = 'Good';
+                    consistencyClass = 'good';
+                }
+                
+                let detailedResults = '';
+                testResults.forEach(result => {
+                    detailedResults += `
+                        <div class="test-case">
+                            <strong>Test ${result.test}:</strong>
+                            Precision: ${result.precision.toFixed(1)}% | 
+                            Confidence: ${Math.round(result.confidence * 100)}%
+                        </div>
+                    `;
+                });
+                
+                resultsContent.innerHTML = `
+                    <div class="precision-score ${consistencyClass}">
+                        Consistency: ${consistencyStatus}
+                        <br><small>Variance: ${variance.toFixed(1)}%</small>
+                    </div>
+                    
+                    <div class="test-case">
+                        <h4>Consistency Analysis</h4>
+                        <p><strong>Average Precision:</strong> ${avgPrecision.toFixed(1)}%</p>
+                        <p><strong>Best Result:</strong> ${maxPrecision.toFixed(1)}%</p>
+                        <p><strong>Worst Result:</strong> ${minPrecision.toFixed(1)}%</p>
+                        <p><strong>Variance:</strong> ${variance.toFixed(1)}%</p>
+                        <p><strong>Target:</strong> ≤2% variance for excellent consistency</p>
+                    </div>
+                    
+                    <h4>Individual Test Results:</h4>
+                    ${detailedResults}
+                `;
+                
+            } catch (error) {
+                console.error('Consistency test error:', error);
+                resultsContent.innerHTML = `<div class="test-case mismatch">❌ Test xatosi: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

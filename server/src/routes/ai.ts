@@ -79,15 +79,26 @@ const omrAnalysisSchema = Joi.object({
     'string.empty': 'Rasm base64 formatida bo\'lishi kerak',
     'any.required': 'Rasm majburiy'
   }),
-  answerKey: Joi.array().items(Joi.string()).required().messages({
+  answerKey: Joi.array().items(Joi.string().allow('', null)).min(1).required().messages({
     'array.base': 'Javob kalitlari array bo\'lishi kerak',
+    'array.min': 'Kamida 1 ta javob kaliti bo\'lishi kerak',
     'any.required': 'Javob kalitlari majburiy'
   }),
   scoring: Joi.object({
-    correct: Joi.number().required(),
-    wrong: Joi.number().required(),
-    blank: Joi.number().required()
+    correct: Joi.number().required().messages({
+      'number.base': 'To\'g\'ri javob bali raqam bo\'lishi kerak',
+      'any.required': 'To\'g\'ri javob bali majburiy'
+    }),
+    wrong: Joi.number().required().messages({
+      'number.base': 'Noto\'g\'ri javob bali raqam bo\'lishi kerak',
+      'any.required': 'Noto\'g\'ri javob bali majburiy'
+    }),
+    blank: Joi.number().required().messages({
+      'number.base': 'Bo\'sh javob bali raqam bo\'lishi kerak',
+      'any.required': 'Bo\'sh javob bali majburiy'
+    })
   }).required().messages({
+    'object.base': 'Baholash tizimi obyekt bo\'lishi kerak',
     'any.required': 'Baholash tizimi majburiy'
   })
 })
@@ -98,16 +109,53 @@ const omrAnalysisSchema = Joi.object({
  */
 router.post('/analyze-omr', authenticate, async (req: Request, res: Response) => {
   try {
+    console.log('=== OMR ANALYZE REQUEST ===')
+    console.log('Request body keys:', Object.keys(req.body))
+    console.log('Request body:', {
+      image: req.body.image ? `[base64 string of ${req.body.image.length} chars]` : 'MISSING',
+      answerKey: req.body.answerKey,
+      answerKeyType: Array.isArray(req.body.answerKey) ? 'array' : typeof req.body.answerKey,
+      answerKeyLength: req.body.answerKey?.length || 0,
+      scoring: req.body.scoring,
+      scoringType: typeof req.body.scoring
+    })
+    
+    // Pre-validation fixes
+    if (req.body.answerKey && !Array.isArray(req.body.answerKey)) {
+      console.log('Converting answerKey to array')
+      req.body.answerKey = []
+    }
+    
+    if (!req.body.answerKey) {
+      console.log('Setting empty answerKey array')
+      req.body.answerKey = []
+    }
+    
+    if (!req.body.scoring || typeof req.body.scoring !== 'object') {
+      console.log('Setting default scoring')
+      req.body.scoring = { correct: 1, wrong: 0, blank: 0 }
+    }
+    
     const { error, value } = omrAnalysisSchema.validate(req.body)
     if (error) {
+      console.error('Validation error details:', error.details)
       return res.status(400).json({
         success: false,
         message: 'Validatsiya xatosi',
-        errors: error.details.map(detail => detail.message)
+        errors: error.details.map(detail => ({
+          field: detail.path.join('.'),
+          message: detail.message,
+          value: detail.context?.value
+        }))
       })
     }
 
     const { image, answerKey, scoring } = value
+    
+    console.log('=== VALIDATED DATA ===')
+    console.log('Image length:', image?.length || 0)
+    console.log('Answer key:', answerKey)
+    console.log('Scoring:', scoring)
 
     // Let the AI service handle base64 validation
     const result = await AIService.analyzeOMRSheet(image, answerKey, scoring)
@@ -178,7 +226,7 @@ router.post('/analyze-questions', authenticate, async (req: Request, res: Respon
 
     const { questions } = value
 
-    const result = await AIService.analyzeExamQuestions(questions)
+    const result = await AIService.analyzeQuestions(questions)
 
     res.json({
       success: true,

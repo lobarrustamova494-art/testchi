@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Permission Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        .container { 
+            text-align: center; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .primary { background-color: #007bff; color: white; }
+        .secondary { background-color: #6c757d; color: white; }
+        .success { background-color: #28a745; color: white; }
+        .danger { background-color: #dc3545; color: white; }
+        video { max-width: 100%; height: auto; border: 1px solid #ddd; }
+        .error { color: #dc3545; margin: 10px 0; }
+        .success-msg { color: #28a745; margin: 10px 0; }
+        .info { background-color: #e7f3ff; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .file-input { margin: 20px 0; }
+        #preview { max-width: 100%; height: auto; margin: 20px 0; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Camera Permission & File Upload Test</h1>
+    
+    <div class="info">
+        <h3>Kamera ruxsati berish uchun:</h3>
+        <ol>
+            <li>Brauzer manzil qatoridagi kamera belgisini bosing</li>
+            <li>"Ruxsat berish" ni tanlang</li>
+            <li>Sahifani yangilang va qayta urinib ko'ring</li>
+        </ol>
+        <p><strong>Yoki</strong> fayl yuklash orqali test qiling</p>
+    </div>
+
+    <div class="container">
+        <h2>1. Kamera Test</h2>
+        <button class="primary" onclick="testCamera()">Kamerani Ishga Tushirish</button>
+        <button class="secondary" onclick="stopCamera()">Kamerani To'xtatish</button>
+        <div id="camera-status"></div>
+        <video id="video" autoplay playsinline muted style="display: none;"></video>
+        <br>
+        <button class="success" onclick="capturePhoto()" style="display: none;" id="capture-btn">Suratga Olish</button>
+    </div>
+
+    <div class="container">
+        <h2>2. Fayl Yuklash Test</h2>
+        <div class="file-input">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
+            <label for="file-input">
+                <button class="primary" onclick="document.getElementById('file-input').click()">Fayl Tanlash</button>
+            </label>
+        </div>
+        <div id="file-status"></div>
+        <img id="preview" style="display: none;">
+    </div>
+
+    <div class="container">
+        <h2>3. AI Test (Agar rasm yuklangan bo'lsa)</h2>
+        <button class="success" onclick="testAI()" id="ai-test-btn" style="display: none;">AI Tahlil Qilish</button>
+        <div id="ai-status"></div>
+    </div>
+
+    <script>
+        let stream = null;
+        let currentImageData = null;
+
+        async function testCamera() {
+            const statusDiv = document.getElementById('camera-status');
+            const video = document.getElementById('video');
+            const captureBtn = document.getElementById('capture-btn');
+            
+            try {
+                statusDiv.innerHTML = '<div class="success-msg">Kamera ishga tushirilmoqda...</div>';
+                
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Brauzer kamerani qo\'llab-quvvatlamaydi');
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                video.style.display = 'block';
+                captureBtn.style.display = 'inline-block';
+                
+                statusDiv.innerHTML = '<div class="success-msg">✅ Kamera muvaffaqiyatli ishga tushdi!</div>';
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                
+                let errorMessage = 'Kameraga kirish imkoni yo\'q.';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = '❌ Kamera ruxsati berilmagan. Brauzer sozlamalarida kamera ruxsatini yoqing.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage = '❌ Kamera topilmadi. Kamera ulangan va ishlaydigan ekanligini tekshiring.';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage = '❌ Brauzer kamerani qo\'llab-quvvatlamaydi.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage = '❌ Kamera boshqa dastur tomonidan ishlatilmoqda.';
+                } else if (error.name === 'OverconstrainedError') {
+                    errorMessage = '❌ Kamera talablariga javob bermaydi.';
+                }
+                
+                statusDiv.innerHTML = `<div class="error">${errorMessage}</div>`;
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            const video = document.getElementById('video');
+            const captureBtn = document.getElementById('capture-btn');
+            const statusDiv = document.getElementById('camera-status');
+            
+            video.style.display = 'none';
+            captureBtn.style.display = 'none';
+            statusDiv.innerHTML = '<div class="success-msg">Kamera to\'xtatildi</div>';
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            ctx.drawImage(video, 0, 0);
+            currentImageData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Show preview
+            const preview = document.getElementById('preview');
+            preview.src = currentImageData;
+            preview.style.display = 'block';
+            
+            // Enable AI test
+            document.getElementById('ai-test-btn').style.display = 'inline-block';
+            
+            document.getElementById('camera-status').innerHTML += '<div class="success-msg">✅ Surat olindi!</div>';
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            const statusDiv = document.getElementById('file-status');
+            const preview = document.getElementById('preview');
+            
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                statusDiv.innerHTML = '<div class="error">❌ Faqat rasm fayllarini yuklash mumkin</div>';
+                return;
+            }
+            
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                statusDiv.innerHTML = '<div class="error">❌ Fayl hajmi 10MB dan oshmasligi kerak</div>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImageData = e.target.result;
+                preview.src = currentImageData;
+                preview.style.display = 'block';
+                
+                // Enable AI test
+                document.getElementById('ai-test-btn').style.display = 'inline-block';
+                
+                statusDiv.innerHTML = '<div class="success-msg">✅ Fayl muvaffaqiyatli yuklandi!</div>';
+            };
+            reader.onerror = function() {
+                statusDiv.innerHTML = '<div class="error">❌ Faylni o\'qishda xatolik yuz berdi</div>';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function testAI() {
+            if (!currentImageData) {
+                document.getElementById('ai-status').innerHTML = '<div class="error">❌ Avval rasm yuklang yoki suratga oling</div>';
+                return;
+            }
+            
+            const statusDiv = document.getElementById('ai-status');
+            statusDiv.innerHTML = '<div class="success-msg">AI tahlil qilinmoqda...</div>';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token topilmadi. Avval login qiling.');
+                }
+                
+                const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        image: currentImageData.split(',')[1], // Remove data:image/jpeg;base64, prefix
+                        answerKey: ['A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'D', 'E'], // Test answer key
+                        scoring: { correct: 1, wrong: 0, blank: 0 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    statusDiv.innerHTML = `
+                        <div class="success-msg">✅ AI tahlil muvaffaqiyatli!</div>
+                        <div style="text-align: left; margin-top: 10px;">
+                            <strong>Natijalar:</strong><br>
+                            To'g'ri: ${result.data.correctAnswers}<br>
+                            Noto'g'ri: ${result.data.wrongAnswers}<br>
+                            Bo'sh: ${result.data.blankAnswers}<br>
+                            Jami ball: ${result.data.totalScore}<br>
+                            Ishonch: ${Math.round(result.data.confidence * 100)}%
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `<div class="error">❌ AI tahlil xatosi: ${result.message}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('AI test error:', error);
+                statusDiv.innerHTML = `<div class="error">❌ AI tahlil xatosi: ${error.message}</div>`;
+            }
+        }
+
+        // Check camera support on page load
+        window.onload = function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.getElementById('camera-status').innerHTML = '<div class="error">❌ Brauzer kamerani qo\'llab-quvvatlamaydi</div>';
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Professional Examiner Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .container { 
+            text-align: center; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        .examiner-approach {
+            background: #f0f8ff;
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .step-by-step {
+            background: #fff9e6;
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .examination-example {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .question-visual {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .question-number {
+            font-weight: bold;
+            font-size: 18px;
+            width: 30px;
+        }
+        .circles-row {
+            display: flex;
+            gap: 15px;
+        }
+        .circle {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            position: relative;
+        }
+        .position-label {
+            position: absolute;
+            top: -25px;
+            font-size: 10px;
+            color: #666;
+        }
+        .letter-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 12px;
+            color: #000;
+            font-weight: bold;
+        }
+        .filled { background-color: #000; color: white; }
+        .partial { background: linear-gradient(45deg, #000 60%, white 40%); color: white; }
+        .faded { background-color: #666; color: #333; }
+        .empty { background-color: white; color: #000; }
+        .examination-process {
+            text-align: left;
+        }
+        .process-step {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #4a90e2;
+            background: #f8f9fa;
+        }
+        .decision {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .decision.filled {
+            color: #dc3545;
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .primary { background-color: #007bff; color: white; }
+        .success { background-color: #28a745; color: white; }
+        .results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .test-case {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .match { background: #d4edda; }
+        .mismatch { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>👨‍🏫 Professional Examiner Test</h1>
+    <p>Bu test AI ning titul varaqni tekshirgandek professional darajada ishlashini tekshiradi</p>
+    
+    <div class="examiner-approach">
+        <h2>🔍 Professional Examiner Yondashuvi</h2>
+        <p><strong>AI titul varaqni tekshirgandek ishlashi kerak:</strong></p>
+        <ul>
+            <li>✅ Har bir aylanani alohida va diqqat bilan ko'rib chiqish</li>
+            <li>✅ Sistemali va metodli tekshirish jarayoni</li>
+            <li>✅ Talabalar bilan mehribon bo'lish (shubhada - FILLED deb hisoblash)</li>
+            <li>✅ Harf ko'rinishini asosiy mezon sifatida qo'llash</li>
+            <li>✅ Bir xil standartlarni barcha savollarga qo'llash</li>
+            <li>✅ Professional izchillik va aniqlik</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h2>Step-by-Step Examination Process</h2>
+        
+        <div class="step-by-step">
+            <h4>🔍 Har bir aylana uchun 4 ta savol:</h4>
+            <ol>
+                <li><strong>Harf aniq ko'rinadimi?</strong> (Agar yo'q → FILLED)</li>
+                <li><strong>Biror belgi bormi?</strong> (Agar ha → FILLED)</li>
+                <li><strong>Aylana "ishlatilgan" ko'rinadimi?</strong> (Agar ha → FILLED)</li>
+                <li><strong>Shubhada nima qilish kerak?</strong> (Mehribon bo'lish → FILLED)</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Professional Examination Examples</h2>
+        
+        <div class="examination-example">
+            <div class="question-visual">
+                <div class="question-number">1.</div>
+                <div class="circles-row">
+                    <div class="circle filled">
+                        <div class="position-label">Pos1</div>
+                        <div class="letter-label">A</div>
+                        A
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos2</div>
+                        <div class="letter-label">B</div>
+                        B
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos3</div>
+                        <div class="letter-label">C</div>
+                        C
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos4</div>
+                        <div class="letter-label">D</div>
+                        D
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos5</div>
+                        <div class="letter-label">E</div>
+                        E
+                    </div>
+                </div>
+            </div>
+            
+            <div class="examination-process">
+                <h4>Professional Examination Process:</h4>
+                <div class="process-step">
+                    <strong>Position 1 (A):</strong><br>
+                    • Harf ko'rinadimi? ❌ (qora bo'yalgan, ko'rinmaydi)<br>
+                    • <span class="decision filled">Decision: FILLED</span>
+                </div>
+                <div class="process-step">
+                    <strong>Position 2 (B):</strong><br>
+                    • Harf ko'rinadimi? ✅ (aniq ko'rinadi)<br>
+                    • Belgilar bormi? ❌ (yo'q)<br>
+                    • <span class="decision">Decision: EMPTY</span>
+                </div>
+                <div class="process-step">
+                    <strong>Positions 3,4,5:</strong> Barcha EMPTY<br>
+                    <strong>Final Answer: A</strong> (Position 1 FILLED)
+                </div>
+            </div>
+        </div>
+        
+        <div class="examination-example">
+            <div class="question-visual">
+                <div class="question-number">2.</div>
+                <div class="circles-row">
+                    <div class="circle empty">
+                        <div class="position-label">Pos1</div>
+                        <div class="letter-label">A</div>
+                        A
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos2</div>
+                        <div class="letter-label">B</div>
+                        B
+                    </div>
+                    <div class="circle partial">
+                        <div class="position-label">Pos3</div>
+                        <div class="letter-label">C</div>
+                        C
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos4</div>
+                        <div class="letter-label">D</div>
+                        D
+                    </div>
+                    <div class="circle empty">
+                        <div class="position-label">Pos5</div>
+                        <div class="letter-label">E</div>
+                        E
+                    </div>
+                </div>
+            </div>
+            
+            <div class="examination-process">
+                <h4>Professional Examination Process:</h4>
+                <div class="process-step">
+                    <strong>Position 3 (C):</strong><br>
+                    • Harf ko'rinadimi? ⚠️ (qisman ko'rinadi)<br>
+                    • Belgilar bormi? ✅ (yarim bo'yalgan)<br>
+                    • <span class="decision filled">Decision: FILLED</span>
+                </div>
+                <div class="process-step">
+                    <strong>Other Positions:</strong> Barcha EMPTY<br>
+                    <strong>Final Answer: C</strong> (Position 3 FILLED)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <button class="primary" onclick="testProfessionalExamination()">👨‍🏫 Professional Examiner Test</button>
+        <button class="success" onclick="testSystematicApproach()">📋 Systematic Approach Test</button>
+    </div>
+
+    <div id="results" class="results" style="display: none;">
+        <h3>📊 Test Natijalari</h3>
+        <div id="results-content"></div>
+    </div>
+
+    <script>
+        function createProfessionalTestImage(scenarios) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw title
+            ctx.fillStyle = 'black';
+            ctx.font = '16px Arial';
+            ctx.fillText('Professional OMR Examination Test', 50, 50);
+            
+            // Draw questions with professional examination scenarios
+            for (let i = 0; i < scenarios.length; i++) {
+                const y = 100 + i * 80;
+                ctx.fillText(`${i + 1}.`, 50, y);
+                
+                // Draw 5 circles for each question
+                for (let j = 0; j < 5; j++) {
+                    const x = 100 + j * 80;
+                    const letter = String.fromCharCode(65 + j); // A, B, C, D, E
+                    
+                    // Draw circle
+                    ctx.beginPath();
+                    ctx.arc(x, y - 5, 20, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                    // Apply scenario-specific marking
+                    const scenario = scenarios[i];
+                    if (j === scenario.markedPosition) {
+                        switch (scenario.markingType) {
+                            case 'heavy':
+                                // Heavy marking - letter not visible
+                                ctx.fillStyle = 'black';
+                                ctx.fill();
+                                // Don't draw letter (it's hidden)
+                                ctx.fillStyle = 'black';
+                                break;
+                            case 'partial':
+                                // Partial marking - letter partially visible
+                                ctx.fillStyle = '#666';
+                                ctx.beginPath();
+                                ctx.arc(x, y - 5, 20, 0, Math.PI);
+                                ctx.fill();
+                                ctx.fillStyle = '#333';
+                                ctx.fillText(letter, x - 6, y);
+                                ctx.fillStyle = 'black';
+                                break;
+                            case 'faded':
+                                // Faded marking - letter barely visible
+                                ctx.fillStyle = '#ccc';
+                                ctx.fill();
+                                ctx.fillStyle = '#666';
+                                ctx.fillText(letter, x - 6, y);
+                                ctx.fillStyle = 'black';
+                                break;
+                            case 'line':
+                                // Line through circle
+                                ctx.beginPath();
+                                ctx.moveTo(x - 15, y - 5);
+                                ctx.lineTo(x + 15, y - 5);
+                                ctx.stroke();
+                                ctx.fillText(letter, x - 6, y);
+                                break;
+                            case 'dot':
+                                // Dot in circle
+                                ctx.beginPath();
+                                ctx.arc(x, y - 5, 3, 0, 2 * Math.PI);
+                                ctx.fill();
+                                ctx.fillText(letter, x - 6, y);
+                                break;
+                        }
+                    } else {
+                        // Empty circle with visible letter
+                        ctx.fillText(letter, x - 6, y);
+                    }
+                }
+            }
+            
+            return canvas.toDataURL('image/png');
+        }
+
+        async function testProfessionalExamination() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = '<div style="text-align: center;">👨‍🏫 Professional Examiner Test ishlamoqda...</div>';
+            resultsDiv.style.display = 'block';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token topilmadi. Avval login qiling: http://localhost:5173');
+                }
+                
+                // Professional examination scenarios
+                const scenarios = [
+                    { markedPosition: 0, markingType: 'heavy', expectedAnswer: 'A', description: 'Heavy marking - letter not visible' },
+                    { markedPosition: 1, markingType: 'partial', expectedAnswer: 'B', description: 'Partial marking - letter partially visible' },
+                    { markedPosition: 2, markingType: 'faded', expectedAnswer: 'C', description: 'Faded marking - letter barely visible' },
+                    { markedPosition: 3, markingType: 'line', expectedAnswer: 'D', description: 'Line marking - letter visible' },
+                    { markedPosition: 4, markingType: 'dot', expectedAnswer: 'E', description: 'Dot marking - letter visible' }
+                ];
+                
+                const answerKey = ['A', 'B', 'C', 'D', 'E'];
+                const expectedAnswers = scenarios.map(s => s.expectedAnswer);
+                
+                const imageData = createProfessionalTestImage(scenarios);
+                
+                const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        image: imageData.split(',')[1],
+                        answerKey: answerKey,
+                        scoring: { correct: 1, wrong: 0, blank: 0 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+                
+                const aiAnswers = result.data.extractedAnswers;
+                let correctDetections = 0;
+                let detailedResults = '';
+                
+                for (let i = 0; i < 5; i++) {
+                    const expected = expectedAnswers[i];
+                    const actual = aiAnswers[i] || 'BLANK';
+                    const isCorrect = actual === expected;
+                    const scenario = scenarios[i];
+                    
+                    if (isCorrect) correctDetections++;
+                    
+                    detailedResults += `
+                        <div class="test-case ${isCorrect ? 'match' : 'mismatch'}">
+                            <strong>Q${i+1} (${scenario.markingType}):</strong>
+                            <span style="color: #28a745; font-weight: bold;">Expected: ${expected}</span> | 
+                            <span style="color: #007bff; font-weight: bold;">AI: ${actual}</span>
+                            ${isCorrect ? '✅' : '❌'}
+                            <br><small>${scenario.description}</small>
+                        </div>
+                    `;
+                }
+                
+                const accuracy = (correctDetections / 5) * 100;
+                
+                resultsContent.innerHTML = `
+                    <h3>👨‍🏫 Professional Examiner Test Results</h3>
+                    <div class="test-case">
+                        <h4>Overall Performance</h4>
+                        <p><strong>Professional Accuracy:</strong> ${accuracy}% (${correctDetections}/5)</p>
+                        <p><strong>AI Confidence:</strong> ${Math.round(result.data.confidence * 100)}%</p>
+                        <p><strong>Professional Standard:</strong> ${accuracy >= 90 ? '✅ Excellent' : accuracy >= 80 ? '✅ Good' : '❌ Needs Improvement'}</p>
+                    </div>
+                    <div class="examiner-approach">
+                        <h4>🔍 Professional Examination Criteria</h4>
+                        <p><strong>Heavy/Partial/Faded:</strong> Should be FILLED (letter not clearly visible)</p>
+                        <p><strong>Line/Dot:</strong> Should be FILLED (marking present)</p>
+                        <p><strong>Empty:</strong> Should be EMPTY (letter visible, no marks)</p>
+                    </div>
+                    ${detailedResults}
+                `;
+                
+            } catch (error) {
+                console.error('Professional examiner test error:', error);
+                resultsContent.innerHTML = `<div class="test-case mismatch">❌ Test xatosi: ${error.message}</div>`;
+            }
+        }
+
+        async function testSystematicApproach() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = '<div style="text-align: center;">📋 Systematic Approach Test ishlamoqda...</div>';
+            resultsDiv.style.display = 'block';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token topilmadi. Avval login qiling: http://localhost:5173');
+                }
+                
+                // Test systematic approach with multiple test cases
+                const testCases = [
+                    {
+                        name: 'All Heavy Markings',
+                        scenarios: [
+                            { markedPosition: 0, markingType: 'heavy', expectedAnswer: 'A' },
+                            { markedPosition: 1, markingType: 'heavy', expectedAnswer: 'B' },
+                            { markedPosition: 2, markingType: 'heavy', expectedAnswer: 'C' },
+                            { markedPosition: 3, markingType: 'heavy', expectedAnswer: 'D' },
+                            { markedPosition: 4, markingType: 'heavy', expectedAnswer: 'E' }
+                        ]
+                    },
+                    {
+                        name: 'Mixed Professional Scenarios',
+                        scenarios: [
+                            { markedPosition: 0, markingType: 'heavy', expectedAnswer: 'A' },
+                            { markedPosition: -1, markingType: 'none', expectedAnswer: 'BLANK' },
+                            { markedPosition: 2, markingType: 'partial', expectedAnswer: 'C' },
+                            { markedPosition: -1, markingType: 'none', expectedAnswer: 'BLANK' },
+                            { markedPosition: 4, markingType: 'line', expectedAnswer: 'E' }
+                        ]
+                    }
+                ];
+                
+                let allResults = '';
+                
+                for (const testCase of testCases) {
+                    const imageData = createProfessionalTestImage(testCase.scenarios);
+                    const answerKey = ['A', 'B', 'C', 'D', 'E'];
+                    const expectedAnswers = testCase.scenarios.map(s => s.expectedAnswer);
+                    
+                    const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            image: imageData.split(',')[1],
+                            answerKey: answerKey,
+                            scoring: { correct: 1, wrong: 0, blank: 0 }
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const aiAnswers = result.data.extractedAnswers;
+                        let correctDetections = 0;
+                        let detailedResults = '';
+                        
+                        for (let i = 0; i < 5; i++) {
+                            const expected = expectedAnswers[i];
+                            const actual = aiAnswers[i] || 'BLANK';
+                            const isCorrect = actual === expected;
+                            
+                            if (isCorrect) correctDetections++;
+                            
+                            detailedResults += `
+                                <div class="test-case ${isCorrect ? 'match' : 'mismatch'}">
+                                    <strong>Q${i+1}:</strong>
+                                    <span style="color: #28a745; font-weight: bold;">Expected: ${expected}</span> | 
+                                    <span style="color: #007bff; font-weight: bold;">AI: ${actual}</span>
+                                    ${isCorrect ? '✅' : '❌'}
+                                </div>
+                            `;
+                        }
+                        
+                        const accuracy = (correctDetections / 5) * 100;
+                        
+                        allResults += `
+                            <div class="test-case">
+                                <h4>${testCase.name}</h4>
+                                <p><strong>Accuracy:</strong> ${accuracy}% (${correctDetections}/5)</p>
+                                <p><strong>Confidence:</strong> ${Math.round(result.data.confidence * 100)}%</p>
+                                ${detailedResults}
+                            </div>
+                        `;
+                    }
+                    
+                    // Small delay between tests
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                resultsContent.innerHTML = `
+                    <h3>📋 Systematic Approach Test Results</h3>
+                    ${allResults}
+                    <div class="examiner-approach">
+                        <h4>📋 Professional Standards Summary</h4>
+                        <p><strong>Systematic Examination:</strong> Each circle examined individually</p>
+                        <p><strong>Consistent Standards:</strong> Same criteria applied to all questions</p>
+                        <p><strong>Professional Generosity:</strong> When in doubt, favor the student</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Systematic approach test error:', error);
+                resultsContent.innerHTML = `<div class="test-case mismatch">❌ Test xatosi: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
