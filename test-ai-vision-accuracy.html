@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision Accuracy Test - Ko'rish Aniqligini Tekshirish</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .vision-info {
+            background: #fff5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .expected-answers {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .upload-area {
+            border: 3px dashed #e74c3c;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            background: #fff5f5;
+        }
+        .upload-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .accuracy-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .accuracy-perfect {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .accuracy-good {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        .accuracy-poor {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👁️ AI Vision Accuracy Test</h1>
+            <p>AI qanchalik aniq rasmni ko'rayotganini tekshirish</p>
+        </div>
+
+        <div class="vision-info">
+            <h3>🔍 AI Vision Test:</h3>
+            <p>AI ushbu rasmni yuklasangiz, quyidagi javoblarni aniqlay olishi kerak:</p>
+            <div class="expected-answers" id="expectedAnswers">
+                Q1:B, Q2:B, Q3:C, Q4:D, Q5:C, Q6:D, Q7:A, Q8:A, Q9:B, Q10:C,
+                Q11:A, Q12:B, Q13:C, Q14:B, Q15:INVALID, Q16:C, Q17:B, Q18:A, Q19:D, Q20:C,
+                Q21:A, Q22:D, Q23:B, Q24:D, Q25:C, Q26:D, Q27:B, Q28:D, Q29:A, Q30:C
+            </div>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Upload OMR image to test AI vision accuracy</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Choose Image File
+            </button>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)" style="display: none;">
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <div id="accuracyDisplay" class="accuracy-display"></div>
+            <div id="detailedResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const expectedAnswers = [
+            'B', 'B', 'C', 'D', 'C', 'D', 'A', 'A', 'B', 'C',
+            'A', 'B', 'C', 'B', 'INVALID', 'C', 'B', 'A', 'D', 'C',
+            'A', 'D', 'B', 'D', 'C', 'D', 'B', 'D', 'A', 'C'
+        ];
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processFile(file);
+            }
+        }
+
+        async function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64 = e.target.result.split(',')[1];
+                
+                try {
+                    const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: base64,
+                            answerKey: expectedAnswers,
+                            scoring: { correct: 4, wrong: -1, blank: 0 }
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        displayResults(result.data);
+                    }
+                } catch (error) {
+                    alert('Analysis failed: ' + error.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const accuracyDiv = document.getElementById('accuracyDisplay');
+            
+            let matches = 0;
+            expectedAnswers.forEach((expected, index) => {
+                if (data.extractedAnswers[index] === expected) matches++;
+            });
+            
+            const accuracy = (matches / expectedAnswers.length * 100);
+            
+            accuracyDiv.innerHTML = `
+                <div>👁️ Vision Accuracy: ${accuracy.toFixed(1)}% (${matches}/${expectedAnswers.length})</div>
+                <div style="font-size: 16px; margin-top: 10px;">
+                    Method: ${data.method || 'AI_VISION'}
+                </div>
+            `;
+            
+            accuracyDiv.className = accuracy >= 90 ? 'accuracy-display accuracy-perfect' : 
+                                   accuracy >= 70 ? 'accuracy-display accuracy-good' : 
+                                   'accuracy-display accuracy-poor';
+            
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

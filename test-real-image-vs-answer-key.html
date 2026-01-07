@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Image vs Answer Key Test - Haqiqiy Tahlil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #6f42c1 0%, #007bff 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .process-info {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .comparison-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .upload-area {
+            border: 3px dashed #6f42c1;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            background: #f8f6ff;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background: #e6f3ff;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background: #e6f3ff;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .upload-btn {
+            background: #6f42c1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        .upload-btn:hover {
+            background: #5a32a3;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .accuracy-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .accuracy-perfect {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .accuracy-good {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        .accuracy-poor {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .answer-item {
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .correct {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .wrong {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .blank {
+            background: #e2e3e5;
+            border-left: 4px solid #6c757d;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6f42c1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success-badge {
+            background: #6f42c1;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .step {
+            background: #fff;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .step-active {
+            border-color: #6f42c1;
+            background: #f8f6ff;
+        }
+        .step-completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Real Image vs Answer Key Test</h1>
+            <p>AI rasmni o'qib, answer key bilan solishtiradi</p>
+            <span class="success-badge">REAL IMAGE ANALYSIS</span>
+        </div>
+
+        <div class="process-info">
+            <h3>🔄 AI Tahlil Jarayoni:</h3>
+            <div class="step" id="step1">
+                <strong>1-qadam:</strong> AI haqiqiy rasmni o'qib, qog'ozdagi belgilangan javoblarni aniqlaydi
+            </div>
+            <div class="step" id="step2">
+                <strong>2-qadam:</strong> Aniqlangan javoblarni answer key bilan solishtiradi
+            </div>
+            <div class="step" id="step3">
+                <strong>3-qadam:</strong> Qanchasi to'g'ri, qanchasi noto'g'ri ekanini hisoblab chiqadi
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Test Answer Key (30 questions):</h3>
+            <div class="comparison-display" id="answerKeyDisplay">
+                Loading answer key...
+            </div>
+            <p><small>Bu answer key bilan AI aniqlagan javoblar solishtiriladi</small></p>
+        </div>
+
+        <div class="test-section">
+            <h3>📤 Upload OMR Sheet for Real Analysis</h3>
+            <div class="upload-area" id="uploadArea">
+                <p>📁 Drag and drop your OMR image here or click to select</p>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose Image File
+                </button>
+                <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)">
+                <p><small>AI will read the actual image and compare with answer key</small></p>
+            </div>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <h3>📊 Analysis Results</h3>
+            <div id="accuracyDisplay" class="accuracy-display"></div>
+            <div id="detailedResults"></div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>🔍 AI rasmni o'qiyapti va tahlil qilyapti...</p>
+            <p><small>Step 1: Image analysis → Step 2: Answer key comparison</small></p>
+        </div>
+    </div>
+
+    <script>
+        // Test answer key (simulating what comes from ExamKeys.tsx)
+        const testAnswerKey = [
+            'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'D',
+            'D', 'D', 'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C',
+            'C', 'D', '', 'D', 'A', 'A', 'A', 'B', 'B', 'B'
+        ];
+
+        // Expected real image answers (what AI should detect from the actual image)
+        const expectedImageAnswers = [
+            'B', 'B', 'C', 'D', 'B', 'BLANK', 'A', 'A', 'B', 'C',
+            'B', 'A', 'B', 'A', 'A', 'C', 'A', 'A', 'C', 'A',
+            'B', 'D', 'A', 'D', 'A', 'B', 'A', 'A', 'B', 'A'
+        ];
+
+        // Display answer key and expected comparison
+        function displayAnswerKey() {
+            const display = document.getElementById('answerKeyDisplay');
+            let html = 'Answer Key:\n';
+            
+            for (let i = 0; i < testAnswerKey.length; i++) {
+                const answer = testAnswerKey[i] || 'BLANK';
+                html += `Q${i + 1}: ${answer}${i < testAnswerKey.length - 1 ? ', ' : ''}`;
+                if ((i + 1) % 10 === 0) html += '\n';
+            }
+            
+            html += '\n\nExpected from Image:\n';
+            for (let i = 0; i < expectedImageAnswers.length; i++) {
+                const answer = expectedImageAnswers[i];
+                html += `Q${i + 1}: ${answer}${i < expectedImageAnswers.length - 1 ? ', ' : ''}`;
+                if ((i + 1) % 10 === 0) html += '\n';
+            }
+            
+            display.textContent = html;
+        }
+
+        // Initialize
+        displayAnswerKey();
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        });
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+
+            // Update process steps
+            document.getElementById('step1').className = 'step step-active';
+            document.getElementById('step2').className = 'step';
+            document.getElementById('step3').className = 'step';
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64 = e.target.result.split(',')[1];
+                
+                try {
+                    // Simulate step progression
+                    setTimeout(() => {
+                        document.getElementById('step1').className = 'step step-completed';
+                        document.getElementById('step2').className = 'step step-active';
+                    }, 1000);
+
+                    setTimeout(() => {
+                        document.getElementById('step2').className = 'step step-completed';
+                        document.getElementById('step3').className = 'step step-active';
+                    }, 2000);
+
+                    const response = await fetch('http://localhost:5000/api/ai/analyze-omr', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            image: base64,
+                            answerKey: testAnswerKey,
+                            scoring: {
+                                correct: 4,
+                                wrong: -1,
+                                blank: 0
+                            }
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('step3').className = 'step step-completed';
+                        displayResults(result.data);
+                    } else {
+                        throw new Error(result.message || 'Analysis failed');
+                    }
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    alert('Analysis failed: ' + error.message);
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const accuracyDiv = document.getElementById('accuracyDisplay');
+            const detailedDiv = document.getElementById('detailedResults');
+
+            // Calculate accuracy against test answer key
+            let correctCount = 0;
+            let totalAnswered = 0;
+            let imageAccuracy = 0;
+            let imageMatches = 0;
+            
+            const comparisonResults = testAnswerKey.map((keyAnswer, index) => {
+                const aiAnswer = data.extractedAnswers[index] || 'BLANK';
+                const expectedFromImage = expectedImageAnswers[index] || 'BLANK';
+                const keyAnswerNormalized = keyAnswer || 'BLANK';
+                
+                const isCorrectVsKey = aiAnswer === keyAnswerNormalized;
+                const matchesExpectedImage = aiAnswer === expectedFromImage;
+                
+                if (aiAnswer !== 'BLANK') {
+                    totalAnswered++;
+                    if (isCorrectVsKey) correctCount++;
+                }
+                
+                if (matchesExpectedImage) {
+                    imageMatches++;
+                }
+                
+                return {
+                    question: index + 1,
+                    answerKey: keyAnswerNormalized,
+                    expectedFromImage: expectedFromImage,
+                    aiAnswer: aiAnswer,
+                    isCorrectVsKey: isCorrectVsKey,
+                    matchesImage: matchesExpectedImage,
+                    status: aiAnswer === 'BLANK' ? 'blank' : (isCorrectVsKey ? 'correct' : 'wrong')
+                };
+            });
+
+            // Calculate accuracy percentages
+            const keyAccuracy = totalAnswered > 0 ? (correctCount / totalAnswered * 100) : 0;
+            imageAccuracy = expectedImageAnswers.length > 0 ? (imageMatches / expectedImageAnswers.length * 100) : 0;
+            
+            // Display accuracy
+            accuracyDiv.innerHTML = `
+                <div>🎯 Answer Key Accuracy: ${keyAccuracy.toFixed(1)}% (${correctCount}/${totalAnswered})</div>
+                <div style="font-size: 18px; margin-top: 10px;">
+                    📸 Image Detection Accuracy: ${imageAccuracy.toFixed(1)}% (${imageMatches}/${expectedImageAnswers.length})
+                </div>
+                <div style="font-size: 16px; margin-top: 10px;">
+                    🤖 AI Confidence: ${(data.confidence * 100).toFixed(1)}%
+                </div>
+                <div style="font-size: 14px; margin-top: 5px; color: #6f42c1;">
+                    ✅ Method: ${data.method || 'REAL_IMAGE_ANALYSIS'}
+                </div>
+            `;
+            
+            if (imageAccuracy >= 85) {
+                accuracyDiv.className = 'accuracy-display accuracy-perfect';
+            } else if (imageAccuracy >= 70) {
+                accuracyDiv.className = 'accuracy-display accuracy-good';
+            } else {
+                accuracyDiv.className = 'accuracy-display accuracy-poor';
+            }
+
+            // Display detailed results
+            detailedDiv.innerHTML = `
+                <h4>📝 Detailed Comparison (AI Detection vs Answer Key vs Expected)</h4>
+                <div class="answer-grid">
+                    ${comparisonResults.map(result => `
+                        <div class="answer-item ${result.status}">
+                            <strong>Q${result.question}:</strong><br>
+                            Answer Key: ${result.answerKey}<br>
+                            Expected from Image: ${result.expectedFromImage}<br>
+                            AI Detected: ${result.aiAnswer}<br>
+                            ${result.matchesImage ? '✅ Image Match' : '❌ Image Mismatch'} | 
+                            ${result.isCorrectVsKey ? '✅ Key Match' : '❌ Key Mismatch'}
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #007bff;">
+                    <h4>📊 Analysis Summary:</h4>
+                    <p><strong>Method:</strong> ${data.method || 'REAL_IMAGE_ANALYSIS'}</p>
+                    <p><strong>Total Questions:</strong> ${testAnswerKey.length}</p>
+                    <p><strong>Image Detection Accuracy:</strong> ${imageAccuracy.toFixed(1)}% (${imageMatches}/${expectedImageAnswers.length})</p>
+                    <p><strong>Answer Key Matches:</strong> ${keyAccuracy.toFixed(1)}% (${correctCount}/${totalAnswered})</p>
+                    <p><strong>AI Performance:</strong> ${imageAccuracy >= 80 ? '✅ Excellent image reading' : imageAccuracy >= 60 ? '⚠️ Good but needs improvement' : '❌ Poor image detection'}</p>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 15px; background: #f8f6ff; border-radius: 8px; border-left: 4px solid #6f42c1;">
+                    <h4>🔍 Real Image Analysis Process:</h4>
+                    <p>✅ Step 1: AI analyzed the actual uploaded image</p>
+                    <p>✅ Step 2: Detected marked circles/bubbles in the image</p>
+                    <p>✅ Step 3: Compared detected answers with answer key</p>
+                    <p>✅ Result: Shows how well AI can read real OMR sheets</p>
+                </div>
+            `;
+
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
